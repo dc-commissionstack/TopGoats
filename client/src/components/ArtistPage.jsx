@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import RankBadge from './RankBadge';
 import MusicPlayer from './MusicPlayer';
 
@@ -31,10 +31,8 @@ Releasing independently since 2022. No label. No masters. No compromises.
 };
 
 export default function ArtistPage({ artist = MOCK_ARTIST }) {
-  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
-
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-gray-300 scanlines">
+    <div className="min-h-screen text-gray-300 scanlines pt-14">
       <div className="noise" />
 
       {/* Hero Section */}

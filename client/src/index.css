@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
+/* Kristal-black brand theme */
 :root {
-  --color-bg: #0a0a0a;
-  --color-surface: #141414;
-  --color-surface-2: #1a1a1a;
+  --color-bg: #050505;
+  --color-surface: #0d0d0d;
+  --color-surface-2: #111111;
   --color-accent: #f7971e;
   --color-accent-2: #ffd200;
-  --color-text: #e0e0e0;
-  --color-text-muted: #888;
-  --color-border: #2a2a2a;
+  --color-gold: #c9950e;
+  --color-text: #e8e8e8;
+  --color-text-muted: #777;
+  --color-border: #222;
   --color-error: #f87171;
 }
 
@@ -20,34 +22,62 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--color-bg) url('/top-goats-bg.jpg') fixed center center;
-  background-size: cover;
+  background: var(--color-bg);
   color: var(--color-text);
   min-height: 100vh;
 }
 
-/* Background overlay to ensure readability */
-body::before {
-  content: '';
+/* Brand background image with strong overlay for readability */
+#brand-bg {
   position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+#brand-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.15;
+}
+
+#brand-bg::after {
+  content: '';
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: -1;
+  background: rgba(0, 0, 0, 0.85);
 }
 
-/* Brutalist accents */
+/* Brutalist border utility */
 .brutal-border {
-  border: 2px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
 }
 
 .brutal-border-accent {
-  border: 2px solid var(--color-accent);
+  border: 1.5px solid var(--color-accent);
 }
 
-/* Scanline texture overlay */
+.brutal-border-gold {
+  border: 1.5px solid var(--color-gold);
+}
+
+/* Gold accent text */
+.text-accent {
+  color: var(--color-accent);
+}
+
+.text-gold {
+  color: var(--color-gold);
+}
+
+/* Scanline overlay */
 .scanlines::after {
   content: '';
   position: fixed;
@@ -59,8 +89,8 @@ body::before {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px,
-    rgba(0, 0, 0, 0.08) 4px
+    rgba(0, 0, 0, 0.06) 2px,
+    rgba(0, 0, 0, 0.06) 4px
   );
   pointer-events: none;
   z-index: 9999;
@@ -73,8 +103,34 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseNoise)' opacity='1'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 9998;
+}
+
+/* Site-wide header with logo */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background: rgba(5, 5, 5, 0.9);
+  border-bottom: 1px solid #1a1a1a;
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-logo {
+  height: 28px;
+  width: auto;
+  opacity: 0.9;
+}
+
+.site-logo:hover {
+  opacity: 1;
 }
