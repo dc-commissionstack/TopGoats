@@ -4,6 +4,8 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 import { getRank, addXp, calculateRank, getTiers, getBadges, XP_RULES, runDb } from './herd.js';
 import { registerUser, loginUser, getUserFromToken, updateProfile, generateToken } from './auth.js';
 
@@ -209,6 +211,82 @@ app.put('/api/auth/profile', authMiddleware, (req, res) => {
     res.json({ user: updated });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// ============================================================
+// Music Upload & Distribution
+// ============================================================
+
+const uploadsDir = path.resolve(__dirname, '../uploads');
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) return cb(null, true);
+    cb(new Error('Only audio files (MP3, WAV, FLAC, AAC, OGG, M4A) are allowed'));
+  },
+});
+
+// Serve uploaded files
+app.use('/uploads', express.static(uploadsDir));
+
+// POST /api/tracks/upload — upload a track (requires auth)
+app.post('/api/tracks/upload', authMiddleware, upload.single('audio'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
+    const { title } = req.body;
+    if (!title) return res.status(400).json({ error: 'Track title is required' });
+
+    const trackId = uuidv4();
+    const safeTitle = title.replace(/'/g, "''");
+    const safeId = trackId.replace(/'/g, "''");
+    const safeUserId = req.currentUser.id.replace(/'/g, "''");
+    const filePath = `/uploads/${req.file.filename}`;
+
+    runDb(
+      `INSERT INTO tracks (id, user_id, title, file_path, file_size) VALUES ('${safeId}', '${safeUserId}', '${safeTitle}', '${filePath}', ${req.file.size})`
+    );
+
+    // Award XP for uploading
+    try {
+      addXp(req.currentUser.id, 'first_upload');
+    } catch (xpErr) { /* silent */ }
+
+    res.status(201).json({ track: { id: trackId, title, filePath, fileSize: req.file.size } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/tracks/:userId — list tracks for a user
+app.get('/api/tracks/:userId', (req, res) => {
+  try {
+    const safeId = req.params.userId.replace(/'/g, "''");
+    const tracks = runDb(`SELECT id, title, file_path, file_size, duration, plays, created_at FROM tracks WHERE user_id = '${safeId}' ORDER BY created_at DESC`);
+    res.json({ tracks: tracks || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/tracks/:trackId/play — increment play count
+app.put('/api/tracks/:trackId/play', (req, res) => {
+  try {
+    const safeId = req.params.trackId.replace(/'/g, "''");
+    runDb(`UPDATE tracks SET plays = plays + 1 WHERE id = '${safeId}'`);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

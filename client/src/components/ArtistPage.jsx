@@ -30,7 +30,9 @@ Releasing independently since 2022. No label. No masters. No compromises.
 };
 
 export default function ArtistPage({ user }) {
-  // Fetch live data if user is logged in, otherwise use mock
+  const [liveTracks, setLiveTracks] = useState(null);
+
+  // Fetch live data if user is logged in
   const liveArtist = user
     ? {
         id: user.id,
@@ -47,6 +49,26 @@ export default function ArtistPage({ user }) {
     : null;
 
   const artist = liveArtist || MOCK_ARTIST;
+
+  // Fetch real tracks from API if user is logged in
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/tracks/${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.tracks && data.tracks.length > 0) {
+            setLiveTracks(data.tracks.map((t) => ({
+              id: t.id,
+              title: t.title,
+              duration: t.duration || '--:--',
+              plays: t.plays || 0,
+              filePath: t.file_path,
+            })));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.id]);
   return (
     <div className="min-h-screen text-gray-300 scanlines pt-14">
       <div className="noise" />
@@ -141,7 +163,7 @@ export default function ArtistPage({ user }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Music Player */}
           <div className="lg:col-span-2">
-            <MusicPlayer tracks={artist.tracks} />
+            <MusicPlayer tracks={liveTracks || artist.tracks} userId={user?.id} />
           </div>
 
           {/* Right Column: Bio & Actions */}
