@@ -4,7 +4,8 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import { getRank, addXp, calculateRank, getTiers, getBadges, XP_RULES } from './herd.js';
+import { getRank, addXp, calculateRank, getTiers, getBadges, XP_RULES, runDb } from './herd.js';
+import { registerUser, loginUser, getUserFromToken, updateProfile, generateToken } from './auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -141,6 +142,73 @@ app.get('/api/herd/user/:userId', (req, res) => {
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================================
+// Auth API Routes
+// ============================================================
+
+// Auth middleware: extract user from Bearer token
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  const token = authHeader.split(' ')[1];
+  const user = getUserFromToken(token);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+  req.currentUser = user;
+  next();
+}
+
+// POST /api/auth/register — create account
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, handle, displayName } = req.body;
+    if (!email || !password || !handle || !displayName) {
+      return res.status(400).json({ error: 'email, password, handle, and displayName are required' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    const result = await registerUser(email, password, handle, displayName);
+    const token = generateToken(result.userId);
+    res.status(201).json({ token, user: { id: result.userId, handle, displayName } });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/login — sign in
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'email and password are required' });
+    }
+    const result = await loginUser(email, password);
+    res.json(result);
+  } catch (err) {
+    res.status(401).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/me — get current user profile
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+  res.json({ user: req.currentUser });
+});
+
+// PUT /api/auth/profile — update profile
+app.put('/api/auth/profile', authMiddleware, (req, res) => {
+  try {
+    const { display_name, handle, bio, location, genre } = req.body;
+    const updated = updateProfile(req.currentUser.id, { display_name, handle, bio, location, genre });
+    res.json({ user: updated });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

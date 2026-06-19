@@ -53,7 +53,10 @@ const BADGES = [
 
 export function runDb(sql) {
   try {
-    const result = execSync(`team-db ${JSON.stringify(sql)}`, {
+    // Escape $ signs to prevent shell interpretation
+    const jsonSql = JSON.stringify(sql);
+    const safeSql = jsonSql.replace(/\$/g, "\\$");
+    const result = execSync(`team-db ${safeSql}`, {
       encoding: 'utf8',
       timeout: 5000,
     });

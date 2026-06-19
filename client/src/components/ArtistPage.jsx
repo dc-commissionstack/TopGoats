@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import RankBadge from './RankBadge';
 import MusicPlayer from './MusicPlayer';
 
@@ -7,7 +7,6 @@ const MOCK_ARTIST = {
   id: 'vex-echo',
   name: 'V•E•X   E•C•H•O',
   handle: '@vex_echo',
-  rank: 'yearling',
   xp: 342,
   bio: `Underground producer based in Berlin. Glitch-hop / experimental bass music. 
 Releasing independently since 2022. No label. No masters. No compromises.
@@ -30,7 +29,24 @@ Releasing independently since 2022. No label. No masters. No compromises.
   ],
 };
 
-export default function ArtistPage({ artist = MOCK_ARTIST }) {
+export default function ArtistPage({ user }) {
+  // Fetch live data if user is logged in, otherwise use mock
+  const liveArtist = user
+    ? {
+        id: user.id,
+        name: user.display_name || user.handle,
+        handle: `@${user.handle}`,
+        xp: user.xp || 0,
+        bio: user.bio || 'Independent artist. No label. No compromises.',
+        location: user.location || '',
+        genre: user.genre || 'Underground',
+        joined: user.joined || 'Today',
+        tracks: MOCK_ARTIST.tracks,
+        socialLinks: MOCK_ARTIST.socialLinks,
+      }
+    : null;
+
+  const artist = liveArtist || MOCK_ARTIST;
   return (
     <div className="min-h-screen text-gray-300 scanlines pt-14">
       <div className="noise" />

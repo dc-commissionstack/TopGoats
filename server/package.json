@@ -8,8 +8,10 @@
     "start": "node src/index.js"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "express": "^4.21.0",
-    "helmet": "^8.0.0"
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.3"
   }
 }
