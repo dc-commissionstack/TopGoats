@@ -114,7 +114,29 @@ export default function ArtistPage({ user }) {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Three Goats — Hero Graphic */}
+      <section className="relative overflow-hidden border-b border-[#1a1a1a]">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-[#0a0a0a]" />
+        <div className="relative max-w-6xl mx-auto px-4 py-12 sm:py-20 flex items-center justify-center">
+          <img
+            src="/three-goats.png"
+            alt="Top Goats"
+            className="w-full max-w-2xl sm:max-w-3xl lg:max-w-4xl h-auto opacity-40 sm:opacity-50 hover:opacity-60 transition-opacity duration-700 select-none pointer-events-none"
+            style={{
+              filter: 'grayscale(1) contrast(1.2)',
+              mixBlendMode: 'screen',
+            }}
+          />
+        </div>
+        {/* Overlay text */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center">
+            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.4em] text-white/10 sm:text-white/[0.08]">
+              Sovereign Sound • Independent • Underground
+            </p>
+          </div>
+        </div>
+      </section>
       <main className="max-w-5xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Music Player */}
