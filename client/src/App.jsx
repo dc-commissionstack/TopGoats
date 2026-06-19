@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import LandingPage from './components/LandingPage';
 import ArtistPage from './components/ArtistPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ProfileSettings from './components/ProfileSettings';
 
 function App() {
-  const [page, setPage] = useState('artist'); // 'artist', 'login', 'register', 'settings'
+  const [page, setPage] = useState('landing'); // 'landing', 'artist', 'login', 'register', 'settings'
   const [currentUser, setCurrentUser] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
@@ -44,7 +45,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('tg_token');
     setCurrentUser(null);
-    setPage('artist');
+    setPage('landing');
   };
 
   const handleUpdateProfile = (updatedUser) => {
@@ -60,6 +61,16 @@ function App() {
     );
   }
 
+  // Show landing page without header/background (self-contained design)
+  if (page === 'landing') {
+    return (
+      <LandingPage
+        onExplore={() => setPage('artist')}
+        onJoin={() => setPage('register')}
+      />
+    );
+  }
+
   return (
     <>
       {/* Brand background image */}
@@ -70,7 +81,7 @@ function App() {
       {/* Site header with logo and navigation */}
       <header className="site-header">
         <div className="flex items-center gap-3">
-          <button onClick={() => setPage('artist')} className="flex items-center gap-3">
+          <button onClick={() => setPage('landing')} className="flex items-center gap-3">
             <img src="/top-goats-logo.jpg" alt="Top Goats" className="site-logo" />
             <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 hidden sm:block">
               Top Goats
@@ -93,16 +104,18 @@ function App() {
           {currentUser ? (
             <>
               <span className="text-[10px] text-gray-600 hidden sm:block">{currentUser.handle}</span>
-              <button onClick={() => setPage('settings')}
+              <button onClick={() => setPage('settings')} aria-label="Settings"
                 className="text-[10px] uppercase tracking-[0.2em] text-[#f7971e] hover:text-[#ffd200] transition-colors">
                 Settings
               </button>
             </>
           ) : (
-            <button onClick={() => setPage('login')}
-              className="text-[10px] uppercase tracking-[0.2em] text-[#f7971e] hover:text-[#ffd200] transition-colors">
-              Sign In
-            </button>
+            <>
+              <button onClick={() => setPage('login')} aria-label="Sign in"
+                className="text-[10px] uppercase tracking-[0.2em] text-[#f7971e] hover:text-[#ffd200] transition-colors">
+                Sign In
+              </button>
+            </>
           )}
         </nav>
       </header>
