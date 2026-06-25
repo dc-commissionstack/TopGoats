@@ -69,194 +69,129 @@ export default function ArtistPage({ user }) {
         .catch(() => {});
     }
   }, [user?.id]);
+
   return (
-    <div className="min-h-screen text-gray-300 scanlines pt-14">
+    <div className="min-h-screen text-gray-300 scanlines pt-[120px] bg-transparent">
       <div className="noise" />
 
       {/* Hero Section */}
-      <header className="relative border-b border-[#1a1a1a]">
-        {/* Hero background - pattern */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: `
-                linear-gradient(45deg, #fff 25%, transparent 25%),
-                linear-gradient(-45deg, #fff 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #fff 75%),
-                linear-gradient(-45deg, transparent 75%, #fff 75%)
-              `,
-              backgroundSize: '20px 20px',
-              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-            }}
-          />
-        </div>
-
-        <div className="relative max-w-5xl mx-auto px-4 py-16 sm:py-24">
-          <div className="flex flex-col sm:flex-row items-start gap-6">
-            {/* Artist Avatar */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 brutal-border rounded-sm flex-shrink-0 bg-gradient-to-br from-[#f7971e]/20 to-[#0a0a0a] flex items-center justify-center">
-              <span className="text-5xl sm:text-6xl opacity-80">🎵</span>
+      <header className="relative border-b border-white/5 overflow-hidden animate-fade-in">
+        <div className="relative max-w-6xl mx-auto px-6 py-12 sm:py-24 z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
+            {/* Artist Avatar - Interactive with Glow */}
+            <div className="group relative w-32 h-32 sm:w-48 sm:h-48 flex-shrink-0 animate-scale-in">
+              <div className="absolute inset-0 bg-[#f7971e]/20 rounded-sm blur-2xl group-hover:bg-[#f7971e]/40 transition-all duration-500" />
+              <div className="relative w-full h-full brutal-border bg-black flex items-center justify-center overflow-hidden">
+                <span className="text-6xl sm:text-8xl group-hover:scale-110 transition-transform duration-500">🎵</span>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#f7971e] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+              </div>
             </div>
 
             {/* Artist Info */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.03em] leading-none mb-3 text-white"
-                style={{ fontFamily: "'Inter', sans-serif", letterSpacing: '-0.03em' }}
-              >
+            <div className="flex-1 text-center md:text-left">
+              <div className="inline-block px-3 py-1 bg-[#f7971e]/10 brutal-border border-[#f7971e]/30 text-[#f7971e] text-[10px] font-bold uppercase tracking-widest mb-6 animate-fade-in-right">
+                Sovereign Artist
+              </div>
+              <h1 className="text-5xl sm:text-7xl font-black text-white leading-none mb-4 tracking-tighter uppercase animate-fade-in-up">
                 {artist.name}
               </h1>
-              <p className="text-sm text-gray-500 font-mono mb-2">{artist.handle}</p>
+              <p className="text-lg text-gray-500 font-mono mb-8 opacity-70">{artist.handle}</p>
 
-              <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 mb-8">
                 <RankBadge xp={artist.xp} size="lg" />
-                <span className="text-[10px] text-gray-600 uppercase tracking-wider border border-[#2a2a2a] px-2 py-1 rounded-sm">
+                <div className="h-1 w-1 rounded-full bg-gray-700 hidden sm:block" />
+                <span className="text-xs text-gray-400 uppercase tracking-widest border border-white/10 px-4 py-2 bg-white/5 rounded-sm">
                   {artist.genre}
                 </span>
-                <span className="text-[10px] text-gray-600">📍 {artist.location}</span>
+                <span className="text-xs text-gray-500 font-medium">📍 {artist.location}</span>
               </div>
 
-              {/* Stats */}
-              <div className="flex gap-4 text-xs">
-                <div className="border border-[#2a2a2a] px-3 py-1.5 rounded-sm">
-                  <p className="text-white font-bold">{artist.tracks.length}</p>
-                  <p className="text-[10px] text-gray-600 uppercase tracking-wider">Tracks</p>
-                </div>
-                <div className="border border-[#2a2a2a] px-3 py-1.5 rounded-sm">
-                  <p className="text-white font-bold">{artist.tracks.reduce((s, t) => s + t.plays, 0).toLocaleString()}</p>
-                  <p className="text-[10px] text-gray-600 uppercase tracking-wider">Total Plays</p>
-                </div>
-                <div className="border border-[#2a2a2a] px-3 py-1.5 rounded-sm">
-                  <p className="text-white font-bold">{artist.joined}</p>
-                  <p className="text-[10px] text-gray-600 uppercase tracking-wider">Joined</p>
-                </div>
+              {/* Enhanced Stats Row */}
+              <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto md:mx-0">
+                {[
+                  { val: artist.tracks.length, label: 'Tracks' },
+                  { val: artist.tracks.reduce((s, t) => s + t.plays, 0).toLocaleString(), label: 'Plays' },
+                  { val: artist.joined, label: 'Joined' }
+                ].map((stat, i) => (
+                  <div key={i} className="bg-[#0d0d0d] brutal-border p-3 group hover:border-[#f7971e]/50 transition-colors">
+                    <p className="text-xl font-black text-white group-hover:text-[#f7971e] transition-colors">{stat.val}</p>
+                    <p className="text-[9px] text-gray-600 uppercase tracking-widest">{stat.label}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Three Goats — Hero Graphic */}
-      <section className="relative overflow-hidden border-b border-[#1a1a1a]">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-[#0a0a0a]" />
-        <div className="relative max-w-6xl mx-auto px-4 py-12 sm:py-20 flex items-center justify-center">
-          <img
-            src="/three-goats.png"
-            alt="Top Goats"
-            className="w-full max-w-2xl sm:max-w-3xl lg:max-w-4xl h-auto opacity-40 sm:opacity-50 hover:opacity-60 transition-opacity duration-700 select-none pointer-events-none"
-            style={{
-              filter: 'grayscale(1) contrast(1.2)',
-              mixBlendMode: 'screen',
-            }}
-          />
-        </div>
-        {/* Overlay text */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center">
-            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.4em] text-white/10 sm:text-white/[0.08]">
-              Sovereign Sound • Independent • Underground
-            </p>
-          </div>
-        </div>
-      </section>
-      <main className="max-w-5xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-6xl mx-auto px-6 py-16 animate-fade-in">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Left Column: Music Player */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-12">
             <MusicPlayer tracks={liveTracks || artist.tracks} userId={user?.id} />
           </div>
 
-          {/* Right Column: Bio & Actions */}
-          <div className="space-y-6">
-            {/* Biography */}
-            <section className="bg-[#111] brutal-border rounded-sm p-5">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-3">
-                Biography
+          {/* Right Column: Sidebar */}
+          <div className="space-y-8">
+            {/* Action Card - Support */}
+            <section className="bg-[#0d0d0d] brutal-border p-8 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#f7971e]/5 -mr-12 -mt-12 rounded-full blur-3xl group-hover:bg-[#f7971e]/10 transition-all" />
+              <h2 className="text-sm font-black uppercase tracking-widest text-white mb-6 border-b border-white/5 pb-4">
+                Support the Sound
               </h2>
-              <div className="space-y-3">
-                {artist.bio.split('\n\n').map((paragraph, i) => (
-                  <p key={i} className="text-xs leading-relaxed text-gray-400">
+              <div className="space-y-4">
+                <button
+                  className="w-full py-4 bg-[#f7971e] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffd200] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(247,151,30,0.2)]"
+                  onClick={() => alert('Commerce flow coming soon!')}
+                >
+                  Buy Entire Catalog — $7.00
+                </button>
+                <div className="grid grid-cols-2 gap-3">
+                   <button className="py-3 brutal-border text-[10px] font-bold uppercase tracking-wider hover:bg-white/5 transition-all text-gray-400">
+                     Tip Artist
+                   </button>
+                   <button className="py-3 brutal-border text-[10px] font-bold uppercase tracking-wider hover:bg-white/5 transition-all text-gray-400">
+                     Share Hub
+                   </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Biography Section */}
+            <section className="bg-[#0d0d0d] brutal-border p-8">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 mb-6">
+                Chronicle
+              </h2>
+              <div className="space-y-4">
+                {artist.bio.split('\\n\\n').map((paragraph, i) => (
+                  <p key={i} className="text-[13px] leading-relaxed text-gray-400 font-medium">
                     {paragraph}
                   </p>
                 ))}
               </div>
             </section>
 
-            {/* Buy All / Support */}
-            <section className="bg-[#111] brutal-border rounded-sm p-5">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-3">
-                Support the Artist
-              </h2>
-              <p className="text-xs text-gray-500 mb-4">
-                Direct support keeps the underground alive. No label taking a cut.
-              </p>
-              <div className="space-y-3">
-                <button
-                  className="w-full py-3 brutal-border text-sm font-bold uppercase tracking-wider transition-all duration-200 hover:bg-[#f7971e] hover:text-black hover:border-[#f7971e]"
-                  onClick={() => alert('Stripe payment flow — coming soon!')}
-                >
-                  💰 Buy All Tracks — $7.00
-                </button>
-                <button
-                  className="w-full py-2.5 border border-[#2a2a2a] text-xs uppercase tracking-wider text-gray-400 hover:border-[#666] transition-colors rounded-sm"
-                  onClick={() => alert('Stripe payment flow — coming soon!')}
-                >
-                  🎵 Buy Individual Track
-                </button>
-                <button
-                  className="w-full py-2.5 border border-[#2a2a2a] text-xs uppercase tracking-wider text-gray-400 hover:border-[#666] transition-colors rounded-sm"
-                  onClick={() => alert('Tip/membership flow — coming soon!')}
-                >
-                  ⚡ Tip Artist
-                </button>
-              </div>
-            </section>
-
-            {/* Social Links */}
-            <section className="bg-[#111] brutal-border rounded-sm p-5">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-3">
-                Connect
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {artist.socialLinks.map((link) => (
-                  <a
-                    key={link.platform}
-                    href={link.url}
-                    className="text-[11px] px-3 py-1.5 border border-[#2a2a2a] rounded-sm hover:border-[#f7971e] hover:text-[#f7971e] transition-colors uppercase tracking-wider"
-                  >
-                    {link.platform}
-                  </a>
-                ))}
-              </div>
-            </section>
-
-            {/* Copyright Protection Badge */}
-            <section className="bg-[#111] brutal-border rounded-sm p-5 border-[#6b8e23]/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[#6b8e23] text-sm">✓</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b8e23]">
-                  Sovereign Artist
+            {/* IP Verification - Visual Highlight */}
+            <section className="bg-black brutal-border p-6 border-[#6b8e23]/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-2 h-2 rounded-full bg-[#6b8e23] animate-pulse" />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#6b8e23]">
+                  IP Authenticated
                 </span>
               </div>
-              <p className="text-[10px] text-gray-600 leading-relaxed">
-                All tracks protected by automated copyright fingerprinting. 
-                Top Goats secures your IP at the point of upload.
+              <p className="text-[10px] text-gray-600 leading-relaxed font-mono">
+                Verified on Top Goats Ledger. No unauth sampling detected. Sovereignty status: ACTIVE.
               </p>
             </section>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-[#1a1a1a] py-8 mt-8">
-        <div className="max-w-5xl mx-auto px-4 text-center">
-          <p className="text-[10px] text-gray-700 uppercase tracking-[0.3em]">
-            Powered by <span className="text-gray-500">Top Goats</span> — Independent Music Ecosystem
-          </p>
-          <p className="text-[10px] text-gray-800 mt-2">
-            This page is an artist sovereign template. All content belongs to the artist.
-          </p>
-        </div>
+      {/* Simplified Bottom Nav / Footer */}
+      <footer className="py-20 border-t border-white/5 opacity-30 text-center">
+        <p className="text-[9px] uppercase tracking-[0.5em] text-gray-500">
+          Top Goats Sovereign Artist Page • ID: {artist.id.toUpperCase()}
+        </p>
       </footer>
     </div>
   );

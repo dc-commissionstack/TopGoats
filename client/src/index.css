@@ -42,7 +42,27 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.15;
+  opacity: 0.1;
+}
+
+/* Global transparent goat background */
+#global-goats {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.25;
+  filter: grayscale(1) contrast(1.2) brightness(1.1);
+  mix-blend-mode: screen;
+}
+#global-goats img {
+  width: 100%;
+  height: auto;
 }
 
 #brand-bg::after {
@@ -109,24 +129,57 @@ body {
   z-index: 9998;
 }
 
-/* Site-wide header with logo */
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes gradientX {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+.animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+.animate-fade-in-right { animation: fadeInRight 0.8s ease-out forwards; }
+.animate-scale-in { animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-gradient-x { animation: gradientX 3s ease infinite; }
+
+/* Refined Header */
 .site-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  padding: 0.75rem 1.5rem;
-  background: rgba(5, 5, 5, 0.9);
-  border-bottom: 1px solid #1a1a1a;
-  backdrop-filter: blur(12px);
+  z-index: 1000;
+  padding: 1.25rem 2rem;
+  background: rgba(5, 5, 5, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .site-logo {
-  height: 28px;
+  height: 52px;
   width: auto;
   opacity: 0.9;
 }

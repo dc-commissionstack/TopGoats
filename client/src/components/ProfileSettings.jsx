@@ -39,7 +39,7 @@ export default function ProfileSettings({ user, onUpdate, onLogout }) {
   };
 
   return (
-    <div className="min-h-screen scanlines pt-14">
+    <div className="min-h-screen scanlines pt-[100px]">
       <div className="noise" />
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">

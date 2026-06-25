@@ -28,7 +28,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 scanlines pt-14">
+    <div className="min-h-screen flex items-center justify-center p-4 scanlines pt-[100px]">
       <div className="noise" />
       <div className="w-full max-w-md bg-[#0d0d0d] brutal-border rounded-sm p-8">
         <div className="text-center mb-8">
