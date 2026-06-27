@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import ArtistPage from './components/ArtistPage';
+import HerdPage from './components/HerdPage';
+import LeaderboardPage from './components/LeaderboardPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ProfileSettings from './components/ProfileSettings';
@@ -98,11 +100,15 @@ function App() {
             className={`text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer transition-all hover:text-[#f7971e] ${page === 'artist' ? 'text-[#f7971e] border-b-2 border-[#f7971e]' : 'text-gray-500'}`}>
             Explore
           </button>
-          <button onClick={() => alert('The Herd Interface — Coming Soon!')}
-            className="text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer text-gray-500 hover:text-[#f7971e] transition-all">
+          <button onClick={() => setPage('herd')}
+            className={`text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer transition-all hover:text-[#f7971e] ${page === 'herd' ? 'text-[#f7971e] border-b-2 border-[#f7971e]' : 'text-gray-500'}`}>
             The Herd
           </button>
-          
+          <button onClick={() => setPage('leaderboard')}
+            className={`text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer transition-all hover:text-[#f7971e] ${page === 'leaderboard' ? 'text-[#f7971e] border-b-2 border-[#f7971e]' : 'text-gray-500'}`}>
+            Leaderboard
+          </button>
+
           <div className="h-4 w-[1px] bg-gray-800 mx-2" />
 
           {currentUser ? (
@@ -157,6 +163,8 @@ function App() {
           />
         )}
         {page === 'artist' && <ArtistPage user={currentUser} />}
+        {page === 'herd' && <HerdPage user={currentUser} />}
+        {page === 'leaderboard' && <LeaderboardPage />}
       </main>
     </>
   );
