@@ -71,7 +71,7 @@ export default function ArtistPage({ user }) {
   }, [user?.id]);
 
   return (
-    <div className="min-h-screen text-gray-300 scanlines pt-[120px] bg-transparent">
+    <div className="min-h-screen text-gray-300 scanlines pt-[160px] bg-transparent">
       <div className="noise" />
 
       {/* Hero Section */}

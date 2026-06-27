@@ -80,10 +80,13 @@ function App() {
         <img src="/three-goats.png" alt="" aria-hidden="true" />
       </div>
 
-      {/* Global Header (Visible on all pages including landing) */}
+      {/* Brutalist Grid Overlay */}
+      <div id="brutalist-grid" />
+
+      {/* Global Header */}
       <header className="site-header">
         <div className="flex items-center gap-3">
-          <button onClick={() => setPage('landing')} className="flex items-center gap-3 group transition-transform hover:scale-105">
+          <button onClick={() => setPage('landing')} className="flex items-center gap-3 group cursor-pointer">
             <img src="/top-goats-logo.jpg" alt="Top Goats" className="site-logo" />
             <span className="text-xl font-black uppercase tracking-[0.3em] text-white hidden sm:block group-hover:text-[#f7971e] transition-colors">
               Top Goats
@@ -92,36 +95,32 @@ function App() {
         </div>
         <nav className="flex items-center gap-6">
           <button onClick={() => setPage('artist')}
-            className={`text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:text-[#f7971e] ${page === 'artist' ? 'text-[#f7971e] border-b border-[#f7971e]' : 'text-gray-500'}`}>
+            className={`text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer transition-all hover:text-[#f7971e] ${page === 'artist' ? 'text-[#f7971e] border-b-2 border-[#f7971e]' : 'text-gray-500'}`}>
             Explore
           </button>
           <button onClick={() => alert('The Herd Interface — Coming Soon!')}
-            className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 hover:text-[#f7971e] transition-all">
+            className="text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer text-gray-500 hover:text-[#f7971e] transition-all">
             The Herd
-          </button>
-          <button onClick={() => alert('Global Leaderboard — Coming Soon!')}
-            className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 hover:text-[#f7971e] transition-all">
-            Leaderboard
           </button>
           
           <div className="h-4 w-[1px] bg-gray-800 mx-2" />
 
           {currentUser ? (
             <div className="flex items-center gap-4">
-              <span className="text-[10px] text-gray-400 font-mono hidden md:block">{currentUser.handle}</span>
+              <span className="text-[10px] text-gray-500 font-mono hidden md:block">{currentUser.handle}</span>
               <button onClick={() => setPage('settings')} aria-label="Settings"
-                className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 brutal-border-gold transition-all hover:bg-[#f7971e] hover:text-black ${page === 'settings' ? 'bg-[#f7971e] text-black' : 'text-[#f7971e]'}`}>
+                className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 brutal-border-gold cursor-pointer transition-all hover:bg-[#f7971e] hover:text-black ${page === 'settings' ? 'bg-[#f7971e] text-black' : 'text-[#f7971e]'}`}>
                 Profile
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
               <button onClick={() => setPage('login')} aria-label="Sign in"
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-white hover:text-[#f7971e] transition-all">
+                className="text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer text-white hover:text-[#f7971e] transition-all">
                 Log In
               </button>
               <button onClick={() => setPage('register')} aria-label="Join"
-                className="text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-2 bg-[#f7971e] text-black rounded-sm hover:bg-[#ffd200] transition-all">
+                className="text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer px-4 py-2 bg-[#f7971e] text-black rounded-sm hover:bg-[#ffd200] transition-all">
                 Join
               </button>
             </div>

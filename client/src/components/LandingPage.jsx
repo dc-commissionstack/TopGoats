@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function LandingPage({ onExplore, onJoin, onLogin }) {
   return (
-    <div className="min-h-screen text-gray-300 scanlines pt-[100px] bg-[#050505]">
+    <div className="min-h-screen text-gray-300 scanlines pt-[100px] bg-transparent">
       <div className="noise" />
 
       {/* Hero Section */}
