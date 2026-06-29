@@ -77,12 +77,12 @@ export default function MusicPlayer({ tracks = DEFAULT_TRACKS }) {
             {/* Duration */}
             <span className="text-xs text-gray-500 font-mono">{track.duration}</span>
 
-            {/* Buy button placeholder */}
+            {/* Buy button with mock checkout */}
             <button
               className="text-[10px] px-3 py-1 border border-[#333] rounded-sm uppercase tracking-wider hover:border-[#f7971e] hover:text-[#f7971e] transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
               onClick={(e) => {
                 e.stopPropagation();
-                alert('Buy with Stripe — coming soon!');
+                alert('Stripe checkout — coming soon!\n\nMock: Track purchased. SSF contribution recorded.');
               }}
             >
               Buy

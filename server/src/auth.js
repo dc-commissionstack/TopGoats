@@ -60,6 +60,21 @@ export function registerUser(email, password, handle, displayName) {
     `INSERT INTO herd_users (id, handle, display_name, xp, joined) VALUES ('${safeId}', '${safeHandle}', '${safeName}', 0, '${new Date().getFullYear()}')`
   );
 
+  // Founding Goat: First 100 users get badge + Ram XP (2500)
+  const userCount = runDb('SELECT COUNT(*) as count FROM auth_users');
+  const totalUsers = userCount && userCount[0] ? userCount[0].count : 0;
+  if (totalUsers <= 100) {
+    runDb(
+      `INSERT OR IGNORE INTO user_badges (user_id, badge_id) VALUES ('${safeId}', 'founding-goat')`
+    );
+    runDb(
+      `UPDATE herd_users SET xp = 2500 WHERE id = '${safeId}'`
+    );
+    runDb(
+      `INSERT INTO xp_events (user_id, action, xp_gained, description) VALUES ('${safeId}', 'founding_goat', 2500, 'Founding Goat bonus — instant Ram status')`
+    );
+  }
+
   return { userId, handle, displayName };
 }
 

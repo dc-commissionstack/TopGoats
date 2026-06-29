@@ -103,6 +103,14 @@ export default function ArtistPage({ user }) {
                 <span className="text-xs text-gray-400 uppercase tracking-widest border border-white/10 px-4 py-2 bg-white/5 rounded-sm">
                   {artist.genre}
                 </span>
+                {/* Founding Goat badge */}
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 border border-[#6b8e23]/40 text-[#6b8e23] bg-[#6b8e23]/5 rounded-sm">
+                  👑 Founding Goat
+                </span>
+                {/* Sovereignty Shield badge */}
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 border border-[#4ade80]/30 text-[#4ade80] bg-[#4ade80]/5 rounded-sm">
+                  🛡️ IP Shield
+                </span>
                 <span className="text-xs text-gray-500 font-medium">📍 {artist.location}</span>
               </div>
 

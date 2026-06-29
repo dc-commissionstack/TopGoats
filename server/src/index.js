@@ -360,6 +360,104 @@ app.get('/api/stripe/estimate', (req, res) => {
 });
 
 // ============================================================
+// Sovereignty Shield (Mock ACRCloud Fingerprinting)
+// ============================================================
+
+// In-memory SSF pool (mocked)
+let ssfPool = 128470;
+
+// POST /api/shield/fingerprint — mock fingerprint a track
+app.post('/api/shield/fingerprint', (req, res) => {
+  const { trackId, title } = req.body;
+  const fingerprintId = 'FP-' + Date.now().toString(36).toUpperCase();
+  
+  // Award copyright XP
+  try {
+    const users = runDb(`SELECT user_id FROM tracks WHERE id = '${(trackId || '').replace(/'/g, "''")}'`);
+    if (users && users.length > 0) {
+      addXp(users[0].user_id, 'copyright_fingerprint');
+    }
+  } catch (e) { /* silent */ }
+
+  res.json({
+    success: true,
+    fingerprintId,
+    title: title || 'Unknown Track',
+    status: 'protected',
+    algorithm: 'ACRCloud (Mock)',
+    timestamp: new Date().toISOString(),
+    message: 'Your track is now fingerprint-protected. Any unauthorized uploads will be flagged.',
+  });
+});
+
+// ============================================================
+// Mock Checkout & SSF Pool
+// ============================================================
+
+// POST /api/checkout — mock purchase flow
+app.post('/api/checkout', authMiddleware, (req, res) => {
+  try {
+    const { price, rank } = req.body;
+    if (!price) return res.status(400).json({ error: 'Price is required' });
+
+    const userRank = rank || 'Kid';
+    const estimate = calculatePayout(price, userRank);
+    
+    // Update SSF pool
+    ssfPool += Math.round(estimate.ssfFee * 100);
+    
+    // Award XP for sale
+    try {
+      addXp(req.currentUser.id, 'first_sale');
+    } catch (e) { /* silent */ }
+
+    // Record sale event
+    const saleId = 'SALE-' + Date.now().toString(36).toUpperCase();
+    
+    res.json({
+      success: true,
+      saleId,
+      transaction: {
+        gross: price,
+        stripeFee: estimate.stripeFee,
+        platformFee: estimate.platformFee,
+        ssfFee: estimate.ssfFee,
+        artistPayout: estimate.artistPayout,
+      },
+      ssfPool: ssfPool,
+      message: `Purchase complete. Artist receives ${estimate.artistPayout}. SSF Pool: ${ssfPool.toLocaleString()}.`,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/checkout/flash — mock flash liquidation purchase
+app.post('/api/checkout/flash', authMiddleware, (req, res) => {
+  try {
+    const { rank } = req.body;
+    const flashPrice = 1.00;
+    const userRank = rank || 'Kid';
+    const estimate = calculatePayout(flashPrice, userRank, true);
+    
+    // Double SSF during flash deals
+    ssfPool += Math.round(estimate.ssfFee * 200);
+    
+    const saleId = 'FLASH-' + Date.now().toString(36).toUpperCase();
+    
+    res.json({
+      success: true,
+      saleId,
+      transaction: estimate,
+      ssfPool: ssfPool,
+      message: `Flash deal complete! Artist receives ${estimate.artistPayout}. SSF contribution doubled.`,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================================
 // Fallback
 // ============================================================
 
