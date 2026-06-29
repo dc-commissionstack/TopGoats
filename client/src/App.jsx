@@ -3,6 +3,7 @@ import LandingPage from './components/LandingPage';
 import ArtistPage from './components/ArtistPage';
 import HerdPage from './components/HerdPage';
 import LeaderboardPage from './components/LeaderboardPage';
+import SovereigntyLedgerPage from './components/SovereigntyLedgerPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ProfileSettings from './components/ProfileSettings';
@@ -108,6 +109,10 @@ function App() {
             className={`text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer transition-all hover:text-[#f7971e] ${page === 'leaderboard' ? 'text-[#f7971e] border-b-2 border-[#f7971e]' : 'text-gray-500'}`}>
             Leaderboard
           </button>
+          <button onClick={() => setPage('ledger')}
+            className={`text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer transition-all hover:text-[#6b8e23] ${page === 'ledger' ? 'text-[#6b8e23] border-b-2 border-[#6b8e23]' : 'text-gray-500'}`}>
+            Ledger
+          </button>
 
           <div className="h-4 w-[1px] bg-gray-800 mx-2" />
 
@@ -165,6 +170,7 @@ function App() {
         {page === 'artist' && <ArtistPage user={currentUser} />}
         {page === 'herd' && <HerdPage user={currentUser} />}
         {page === 'leaderboard' && <LeaderboardPage />}
+        {page === 'ledger' && <SovereigntyLedgerPage />}
       </main>
     </>
   );

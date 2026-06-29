@@ -8,6 +8,7 @@ import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { getRank, addXp, calculateRank, getTiers, getBadges, XP_RULES, runDb } from './herd.js';
 import { registerUser, loginUser, getUserFromToken, updateProfile, generateToken } from './auth.js';
+import { calculatePayout } from './stripe.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -326,6 +327,36 @@ app.get('/api/deals/active', (req, res) => {
 app.delete('/api/deals/flash', (req, res) => {
   activeFlashDeal = null;
   res.json({ message: 'Flash deal ended', deal: { active: false } });
+});
+
+// ============================================================
+// Sovereign Sound Foundation (SSF) API
+// ============================================================
+
+// GET /api/ssf/status — SSF pool and grant info
+app.get('/api/ssf/status', (req, res) => {
+  // Mock data for SSF pool — in production, this would query a real database
+  const poolAmount = 128470; // Accumulated 1% from all platform fees
+  const totalDistributed = 11000; // Grants paid out
+  const grantCount = 5;
+  
+  res.json({
+    poolAmount,
+    totalDistributed,
+    grantCount,
+    ssfRate: 0.01,
+    isFlashLiquidation: false,
+    lastUpdated: new Date().toISOString(),
+  });
+});
+
+// GET /api/stripe/estimate — calculate payout estimate
+app.get('/api/stripe/estimate', (req, res) => {
+  const price = parseFloat(req.query.price) || 10;
+  const rank = req.query.rank || 'Kid';
+  const flash = req.query.flash === 'true';
+  const estimate = calculatePayout(price, rank, flash);
+  res.json(estimate);
 });
 
 // ============================================================
