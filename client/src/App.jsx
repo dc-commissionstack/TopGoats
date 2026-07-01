@@ -10,8 +10,15 @@ import ProfileSettings from './components/ProfileSettings';
 
 function App() {
   const [page, setPage] = useState('landing');
+  const [targetArtistId, setTargetArtistId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Navigate to an artist page by ID
+  const goToArtist = (artistId) => {
+    setTargetArtistId(artistId);
+    setPage('artist');
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('tg_token');
@@ -43,18 +50,19 @@ function App() {
   const handleLogin = (user, token) => {
     localStorage.setItem('tg_token', token);
     setCurrentUser(user);
-    setPage('artist');
+    goToArtist(user.id);
   };
 
   const handleRegister = (user, token) => {
     localStorage.setItem('tg_token', token);
     setCurrentUser(user);
-    setPage('artist');
+    goToArtist(user.id);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('tg_token');
     setCurrentUser(null);
+    setTargetArtistId(null);
     setPage('landing');
   };
 
@@ -97,7 +105,14 @@ function App() {
           </button>
         </div>
         <nav className="flex items-center gap-6">
-          <button onClick={() => setPage('artist')}
+          <button onClick={() => {
+            if (currentUser) {
+              goToArtist(currentUser.id);
+            } else {
+              setTargetArtistId(null);
+              setPage('artist');
+            }
+          }}
             className={`text-[10px] font-bold uppercase tracking-[0.2em] cursor-pointer transition-all hover:text-[#f7971e] ${page === 'artist' ? 'text-[#f7971e] border-b-2 border-[#f7971e]' : 'text-gray-500'}`}>
             Explore
           </button>
@@ -143,7 +158,14 @@ function App() {
       <main className="animate-fade-in">
         {page === 'landing' && (
           <LandingPage
-            onExplore={() => setPage('artist')}
+            onExplore={() => {
+              if (currentUser) {
+                goToArtist(currentUser.id);
+              } else {
+                setTargetArtistId(null);
+                setPage('artist');
+              }
+            }}
             onJoin={() => setPage('register')}
             onLogin={() => setPage('login')}
           />
@@ -167,9 +189,9 @@ function App() {
             onLogout={handleLogout}
           />
         )}
-        {page === 'artist' && <ArtistPage user={currentUser} />}
+        {page === 'artist' && <ArtistPage user={currentUser} artistId={targetArtistId} />}
         {page === 'herd' && <HerdPage user={currentUser} />}
-        {page === 'leaderboard' && <LeaderboardPage />}
+        {page === 'leaderboard' && <LeaderboardPage onSelectArtist={goToArtist} />}
         {page === 'ledger' && <SovereigntyLedgerPage />}
       </main>
     </>

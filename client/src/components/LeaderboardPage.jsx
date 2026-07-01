@@ -10,7 +10,7 @@ const TIER_COLORS = {
   'Top Goat': '#f7971e',
 };
 
-export default function LeaderboardPage() {
+export default function LeaderboardPage({ onSelectArtist }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +66,8 @@ export default function LeaderboardPage() {
               return (
                 <div
                   key={entry.id}
-                  className={`grid grid-cols-12 gap-4 px-4 sm:px-6 py-4 items-center border-b border-[#1a1a1a] last:border-0 transition-colors hover:bg-[#1a1a1a]/50 ${
+                  onClick={() => onSelectArtist && onSelectArtist(entry.id)}
+                  className={`grid grid-cols-12 gap-4 px-4 sm:px-6 py-4 items-center border-b border-[#1a1a1a] last:border-0 transition-colors hover:bg-[#1a1a1a]/50 cursor-pointer ${
                     isTopThree ? 'bg-[#f7971e]/5' : ''
                   }`}
                 >

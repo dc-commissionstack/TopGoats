@@ -29,11 +29,40 @@ Releasing independently since 2022. No label. No masters. No compromises.
   ],
 };
 
-export default function ArtistPage({ user }) {
+export default function ArtistPage({ user, artistId }) {
   const [liveTracks, setLiveTracks] = useState(null);
+  const [fetchedArtist, setFetchedArtist] = useState(null);
 
-  // Fetch live data if user is logged in
-  const liveArtist = user
+  // Fetch artist data by ID from API
+  useEffect(() => {
+    if (artistId) {
+      fetch(`/api/herd/rank/${artistId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.user) {
+            const u = data.user;
+            setFetchedArtist({
+              id: u.id,
+              name: u.display_name || u.handle,
+              handle: `@${u.handle}`,
+              xp: u.xp || 0,
+              bio: u.bio || 'Independent artist. No label. No compromises.',
+              location: u.location || '',
+              genre: u.genre || 'Underground',
+              joined: u.joined || 'Today',
+              tracks: MOCK_ARTIST.tracks,
+              socialLinks: MOCK_ARTIST.socialLinks,
+            });
+          }
+        })
+        .catch(() => {});
+    } else {
+      setFetchedArtist(null);
+    }
+  }, [artistId]);
+
+  // Fetch live data if user is logged in (only when no specific artistId)
+  const liveArtist = !artistId && user
     ? {
         id: user.id,
         name: user.display_name || user.handle,
@@ -48,12 +77,13 @@ export default function ArtistPage({ user }) {
       }
     : null;
 
-  const artist = liveArtist || MOCK_ARTIST;
+  const artist = fetchedArtist || liveArtist || MOCK_ARTIST;
 
-  // Fetch real tracks from API if user is logged in
+  // Fetch real tracks from API
   useEffect(() => {
-    if (user?.id) {
-      fetch(`/api/tracks/${user.id}`)
+    const targetId = artistId || user?.id;
+    if (targetId) {
+      fetch(`/api/tracks/${targetId}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.tracks && data.tracks.length > 0) {
@@ -68,7 +98,7 @@ export default function ArtistPage({ user }) {
         })
         .catch(() => {});
     }
-  }, [user?.id]);
+  }, [artistId, user?.id]);
 
   return (
     <div className="min-h-screen text-gray-300 scanlines pt-[160px] bg-transparent">
@@ -136,7 +166,7 @@ export default function ArtistPage({ user }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Left Column: Music Player */}
           <div className="lg:col-span-2 space-y-12">
-            <MusicPlayer tracks={liveTracks || artist.tracks} userId={user?.id} />
+            <MusicPlayer tracks={liveTracks || artist.tracks} userId={artistId || user?.id} />
           </div>
 
           {/* Right Column: Sidebar */}
