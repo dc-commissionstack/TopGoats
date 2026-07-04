@@ -291,6 +291,23 @@ app.put('/api/tracks/:trackId/play', (req, res) => {
   }
 });
 
+// DELETE /api/tracks/:trackId — delete a track (requires auth)
+app.delete('/api/tracks/:trackId', authMiddleware, (req, res) => {
+  try {
+    const safeId = req.params.trackId.replace(/'/g, "''");
+    const safeUserId = req.currentUser.id.replace(/'/g, "''");
+    // Only allow deleting own tracks
+    const tracks = runDb(`SELECT * FROM tracks WHERE id = '${safeId}' AND user_id = '${safeUserId}'`);
+    if (!tracks || tracks.length === 0) {
+      return res.status(404).json({ error: 'Track not found or not yours' });
+    }
+    runDb(`DELETE FROM tracks WHERE id = '${safeId}'`);
+    res.json({ message: 'Track deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ============================================================
 // Flash Liquidation Deals (Owner Vision)
 // ============================================================
@@ -335,10 +352,11 @@ app.delete('/api/deals/flash', (req, res) => {
 
 // GET /api/ssf/status — SSF pool and grant info
 app.get('/api/ssf/status', (req, res) => {
-  // Mock data for SSF pool — in production, this would query a real database
-  const poolAmount = 128470; // Accumulated 1% from all platform fees
-  const totalDistributed = 11000; // Grants paid out
-  const grantCount = 5;
+  // SSF pool tracks real contributions from platform fees
+  // $0 until real transactions occur — no fabricated numbers
+  const poolAmount = ssfPool; // Real accumulated 1% from platform fees
+  const totalDistributed = 0; // No grants paid yet — no real revenue
+  const grantCount = 0;
   
   res.json({
     poolAmount,
@@ -363,8 +381,8 @@ app.get('/api/stripe/estimate', (req, res) => {
 // Sovereignty Shield (Mock ACRCloud Fingerprinting)
 // ============================================================
 
-// In-memory SSF pool (mocked)
-let ssfPool = 128470;
+// In-memory SSF pool — starts at $0, grows from real transactions
+let ssfPool = 0;
 
 // POST /api/shield/fingerprint — mock fingerprint a track
 app.post('/api/shield/fingerprint', (req, res) => {

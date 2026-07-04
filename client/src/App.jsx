@@ -6,7 +6,7 @@ import LeaderboardPage from './components/LeaderboardPage';
 import SovereigntyLedgerPage from './components/SovereigntyLedgerPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
-import ProfileSettings from './components/ProfileSettings';
+import ArtistDashboard from './components/ArtistDashboard';
 
 function App() {
   const [page, setPage] = useState('landing');
@@ -134,9 +134,9 @@ function App() {
           {currentUser ? (
             <div className="flex items-center gap-4">
               <span className="text-[10px] text-gray-500 font-mono hidden md:block">{currentUser.handle}</span>
-              <button onClick={() => setPage('settings')} aria-label="Settings"
-                className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 brutal-border-gold cursor-pointer transition-all hover:bg-[#f7971e] hover:text-black ${page === 'settings' ? 'bg-[#f7971e] text-black' : 'text-[#f7971e]'}`}>
-                Profile
+              <button onClick={() => setPage('settings')} aria-label="Dashboard"
+                className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 bg-[#f7971e] text-black rounded-sm cursor-pointer transition-all hover:bg-[#ffd200] ${page === 'settings' ? 'bg-[#ffd200]' : ''}`}>
+                Dashboard
               </button>
             </div>
           ) : (
@@ -183,10 +183,10 @@ function App() {
           />
         )}
         {page === 'settings' && (
-          <ProfileSettings
+          <ArtistDashboard
             user={currentUser}
-            onUpdate={handleUpdateProfile}
             onLogout={handleLogout}
+            onUpdate={handleUpdateProfile}
           />
         )}
         {page === 'artist' && <ArtistPage user={currentUser} artistId={targetArtistId} />}
