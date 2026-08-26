@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const MOCK_GRANTS = [
-  { id: '1', title: 'IP Defense Fund — Vex Echo', amount: 2500, date: '2026-06-20', type: 'Legal', description: 'Emergency copyright defense for unauthorized sampling case.' },
-  { id: '2', title: 'Studio Access Grant — Lo-Fi Collective', amount: 1500, date: '2026-06-15', type: 'Equipment', description: 'Funding for home studio equipment for 5 emerging producers.' },
-  { id: '3', title: 'Mental Health Stipend — Underground Network', amount: 3000, date: '2026-06-10', type: 'Wellness', description: 'Mental health support stipends for independent artists.' },
-  { id: '4', title: 'Distribution Fund — Phonk Worldwide', amount: 1800, date: '2026-06-05', type: 'Distribution', description: 'Physical pressing and distribution of DIY phonk compilation.' },
-  { id: '5', title: 'Workshop Series — Beatmaking in Berlin', amount: 2200, date: '2026-05-28', type: 'Education', description: 'Free community beatmaking workshops for underprivileged youth.' },
-];
+const MOCK_GRANTS = []; // No grants yet — funded by real platform fees
 
 export default function SovereigntyLedgerPage() {
   const [ssfData, setSsfData] = useState(null);
@@ -20,7 +14,7 @@ export default function SovereigntyLedgerPage() {
   }, []);
 
   const totalGrants = grants.reduce((s, g) => s + g.amount, 0);
-  const poolDisplay = ssfData?.poolAmount || 128470; // fallback mock
+  const poolDisplay = ssfData?.poolAmount ?? 0; // real value, fallback to 0
 
   return (
     <div className="min-h-screen text-gray-300 scanlines pt-[100px]">
