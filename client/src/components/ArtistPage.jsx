@@ -2,31 +2,18 @@ import React, { useState, useEffect } from 'react';
 import RankBadge from './RankBadge';
 import MusicPlayer from './MusicPlayer';
 
-// Mock artist data for the template
-const MOCK_ARTIST = {
-  id: 'vex-echo',
-  name: 'V•E•X   E•C•H•O',
-  handle: '@vex_echo',
-  xp: 342,
-  bio: `Underground producer based in Berlin. Glitch-hop / experimental bass music. 
-Releasing independently since 2022. No label. No masters. No compromises.
-
-"Sound is the only currency that matters."`,
-  location: 'Berlin, DE',
-  genre: 'Glitch-Hop / Experimental Bass',
-  joined: '2022',
-  tracks: [
-    { id: '1', title: 'Neon Frequencies', duration: '3:45', plays: 1284 },
-    { id: '2', title: 'Data Stream', duration: '4:12', plays: 892 },
-    { id: '3', title: 'Signal Lost', duration: '2:58', plays: 567 },
-    { id: '4', title: 'Concrete Waves', duration: '5:01', plays: 2341 },
-    { id: '5', title: 'Zero Hour', duration: '3:33', plays: 445 },
-  ],
-  socialLinks: [
-    { platform: 'Instagram', url: '#' },
-    { platform: 'SoundCloud', url: '#' },
-    { platform: 'YouTube', url: '#' },
-  ],
+// Minimal fallback for totally anonymous visits — no fake songs, no fake stats
+const EMPTY_ARTIST = {
+  id: 'anonymous',
+  name: 'Independent Artist',
+  handle: '@artist',
+  xp: 0,
+  bio: 'Sovereign artist on Top Goats.',
+  location: '',
+  genre: 'Underground',
+  joined: '',
+  tracks: [],
+  socialLinks: [],
 };
 
 export default function ArtistPage({ user, artistId }) {
@@ -50,8 +37,8 @@ export default function ArtistPage({ user, artistId }) {
               location: u.location || '',
               genre: u.genre || 'Underground',
               joined: u.joined || 'Today',
-              tracks: MOCK_ARTIST.tracks,
-              socialLinks: MOCK_ARTIST.socialLinks,
+              tracks: [],
+              socialLinks: [],
             });
           }
         })
@@ -72,12 +59,12 @@ export default function ArtistPage({ user, artistId }) {
         location: user.location || '',
         genre: user.genre || 'Underground',
         joined: user.joined || 'Today',
-        tracks: MOCK_ARTIST.tracks,
-        socialLinks: MOCK_ARTIST.socialLinks,
+        tracks: [],
+        socialLinks: [],
       }
     : null;
 
-  const artist = fetchedArtist || liveArtist || MOCK_ARTIST;
+  const artist = fetchedArtist || liveArtist || EMPTY_ARTIST;
 
   // Fetch real tracks from API
   useEffect(() => {
@@ -101,18 +88,18 @@ export default function ArtistPage({ user, artistId }) {
   }, [artistId, user?.id]);
 
   return (
-    <div className="min-h-screen text-gray-300 scanlines pt-[160px] bg-transparent">
+    <div className="min-h-screen text-gray-300 scanlines pt-[100px] bg-transparent">
       <div className="noise" />
 
       {/* Hero Section */}
       <header className="relative border-b border-white/5 overflow-hidden animate-fade-in">
-        <div className="relative max-w-6xl mx-auto px-6 py-12 sm:py-24 z-10">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
+        <div className="relative max-w-6xl mx-auto px-6 py-8 sm:py-16 z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
             {/* Artist Avatar - Interactive with Glow */}
-            <div className="group relative w-32 h-32 sm:w-48 sm:h-48 flex-shrink-0 animate-scale-in">
+            <div className="group relative w-28 h-28 sm:w-40 sm:h-40 flex-shrink-0 animate-scale-in">
               <div className="absolute inset-0 bg-[#f7971e]/20 rounded-sm blur-2xl group-hover:bg-[#f7971e]/40 transition-all duration-500" />
               <div className="relative w-full h-full brutal-border bg-black flex items-center justify-center overflow-hidden">
-                <span className="text-6xl sm:text-8xl group-hover:scale-110 transition-transform duration-500">🎵</span>
+                <span className="text-5xl sm:text-6xl group-hover:scale-110 transition-transform duration-500">🎵</span>
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#f7971e] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
               </div>
             </div>

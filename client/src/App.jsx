@@ -47,14 +47,12 @@ function App() {
     }
   }, []);
 
-  const handleLogin = (user, token) => {
-    localStorage.setItem('tg_token', token);
+  const handleLogin = (user) => {
     setCurrentUser(user);
     goToArtist(user.id);
   };
 
-  const handleRegister = (user, token) => {
-    localStorage.setItem('tg_token', token);
+  const handleRegister = (user) => {
     setCurrentUser(user);
     goToArtist(user.id);
   };

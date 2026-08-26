@@ -1,19 +1,14 @@
-import { execSync } from 'child_process';
+import { query, exec } from './db.js';
 
 /**
- * Herd Ranking System
+ * Herd Ranking System — PostgreSQL Edition
  * 
- * Tiers (from researcher/community_ranking_logic.md):
+ * Tiers:
  * - Kid (0 XP)
  * - Yearling (500 XP)
  * - Ram (2,500 XP)
  * - Great Goat (10,000 XP)
  * - Top Goat (50,000 XP)
- * 
- * XP gain triggers:
- * - Community Engagement: Post (+10), Comment (+5), Upvote (+2), Accepted Answer (+50), Check-in Streak (+20)
- * - Platform Utility: First Upload (+100), Copyright (+50), Profile Complete (+200), Link Storefront (+50)
- * - Commercial: First Sale (+500), Every $10 Sales (+50), 5-Star Review (+25)
  */
 
 const TIERS = [
@@ -25,20 +20,15 @@ const TIERS = [
 ];
 
 const XP_RULES = {
-  // Community Engagement
   post_created: { xp: 10, category: 'social', description: 'Post created' },
   comment_reply: { xp: 5, category: 'social', description: 'Comment or reply' },
   upvote_received: { xp: 2, category: 'social', description: 'Upvote received' },
   accepted_answer: { xp: 50, category: 'social', description: 'Accepted answer in forums' },
   weekly_checkin: { xp: 20, category: 'social', description: 'Weekly check-in streak' },
-  
-  // Platform Utility
   first_upload: { xp: 100, category: 'utility', description: 'First track uploaded' },
   copyright_fingerprint: { xp: 50, category: 'utility', description: 'Copyright fingerprint secured' },
   profile_complete: { xp: 200, category: 'utility', description: 'Profile completed' },
   link_storefront: { xp: 50, category: 'utility', description: 'External storefront linked' },
-  
-  // Commercial Success
   first_sale: { xp: 500, category: 'commerce', description: 'First sale made' },
   sales_gmv: { xp: 50, category: 'commerce', description: 'Every $10 in sales (GMV)' },
   review_received: { xp: 25, category: 'commerce', description: '5-star review received' },
@@ -51,68 +41,47 @@ const BADGES = [
   { id: 'merchant-goat', name: 'Merchant Goat', description: 'Awarded after reaching $1,000 in lifetime GMV' },
 ];
 
-export function runDb(sql) {
-  try {
-    // Escape $ signs to prevent shell interpretation
-    const jsonSql = JSON.stringify(sql);
-    const safeSql = jsonSql.replace(/\$/g, "\\$");
-    const result = execSync(`team-db ${safeSql}`, {
-      encoding: 'utf8',
-      timeout: 5000,
-    });
-    return JSON.parse(result);
-  } catch (err) {
-    console.error('DB Error:', err.message);
-    throw err;
-  }
-}
+export function getTiers() { return TIERS; }
+export function getBadges() { return BADGES; }
 
-export function getTiers() {
-  return TIERS;
-}
-
-export function getBadges() {
-  return BADGES;
-}
-
-export function getRank(userId) {
-  const users = runDb(`SELECT * FROM herd_users WHERE id = '${userId.replace(/'/g, "''")}'`);
+export async function getRank(userId) {
+  const users = await query('SELECT * FROM herd_users WHERE id = $1', [userId]);
   if (!users || users.length === 0) return null;
 
   const user = users[0];
   const rank = calculateRank(user.xp);
 
-  const events = runDb(
-    `SELECT * FROM xp_events WHERE user_id = '${userId.replace(/'/g, "''")}' ORDER BY created_at DESC LIMIT 20`
+  const events = await query(
+    'SELECT * FROM xp_events WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20',
+    [userId]
   );
 
-  // Get user badges
-  const badges = runDb(
-    `SELECT * FROM user_badges WHERE user_id = '${userId.replace(/'/g, "''")}'`
+  const badges = await query(
+    'SELECT * FROM user_badges WHERE user_id = $1',
+    [userId]
   );
 
   return { user, rank, events, badges: badges || [] };
 }
 
-export function addXp(userId, action) {
+export async function addXp(userId, action) {
   const rule = XP_RULES[action];
   if (!rule) throw new Error(`Unknown action: ${action}. Valid: ${Object.keys(XP_RULES).join(', ')}`);
 
-  const users = runDb(`SELECT * FROM herd_users WHERE id = '${userId.replace(/'/g, "''")}'`);
+  const users = await query('SELECT * FROM herd_users WHERE id = $1', [userId]);
   if (!users || users.length === 0) throw new Error(`User not found: ${userId}`);
 
-  const safeId = userId.replace(/'/g, "''");
-  const safeDesc = rule.description.replace(/'/g, "''");
-
-  runDb(
-    `INSERT INTO xp_events (user_id, action, xp_gained, description) VALUES ('${safeId}', '${action}', ${rule.xp}, '${safeDesc}')`
+  await exec(
+    'INSERT INTO xp_events (user_id, action, xp_gained, description) VALUES ($1, $2, $3, $4)',
+    [userId, action, rule.xp, rule.description]
   );
 
-  runDb(
-    `UPDATE herd_users SET xp = xp + ${rule.xp}, updated_at = datetime('now') WHERE id = '${safeId}'`
+  await exec(
+    'UPDATE herd_users SET xp = xp + $1, updated_at = NOW() WHERE id = $2',
+    [rule.xp, userId]
   );
 
-  const updated = runDb(`SELECT * FROM herd_users WHERE id = '${safeId}'`);
+  const updated = await query('SELECT * FROM herd_users WHERE id = $1', [userId]);
   const user = updated[0];
   const rank = calculateRank(user.xp);
 
@@ -135,6 +104,11 @@ export function calculateRank(xp) {
     : 1;
 
   return { current, next, progress, xp };
+}
+
+// For backwards compat — runDb is no longer used, but stripe.js may import it
+export function runDb() {
+  throw new Error('runDb() removed — use query()/exec() from db.js instead');
 }
 
 export { TIERS, XP_RULES, BADGES };
