@@ -13,9 +13,5 @@
       "maxDuration": 30,
       "includeFiles": "server/**"
     }
-  },
-  "env": {
-    "JWT_SECRET": "@jwt-secret",
-    "DATABASE_URL": "@database-url"
   }
 }
