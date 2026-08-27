@@ -66,8 +66,16 @@ export async function migrate() {
   const schemaPath = path.resolve(__dirname, '../schema.sql');
   try {
     const schema = fs.readFileSync(schemaPath, 'utf8');
-    await exec(schema);
-    console.log('Schema migration complete');
+    // Split into individual statements so this works over both pooled and
+    // direct connections (multi-statement simple queries can fail on PgBouncer).
+    const stmts = schema
+      .split(';')
+      .map((s) => s.split('\n').filter((l) => !l.trim().startsWith('--')).join('\n').trim())
+      .filter((s) => s.length > 0);
+    for (const stmt of stmts) {
+      await exec(stmt);
+    }
+    console.log(`Schema migration complete (${stmts.length} statements)`);
   } catch (err) {
     console.error('Schema migration failed:', err.message);
     // Don't crash the server — tables might already exist
