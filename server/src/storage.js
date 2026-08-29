@@ -4,26 +4,32 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 /**
  * Neon Object Storage (S3-compatible) adapter.
  *
- * Reads configuration from env vars so the build does NOT block on credentials:
- *   S3_ENDPOINT            — e.g. https://<account>.r2.cloudflarestorage.com or Neon's S3 endpoint
- *   S3_ACCESS_KEY          — access key id (also accepts AWS_ACCESS_KEY_ID)
- *   S3_SECRET_KEY          — secret access key (also accepts AWS_SECRET_ACCESS_KEY)
+ * Reads configuration from the standard AWS SDK env vars (already set on Vercel):
+ *   AWS_ENDPOINT_URL_S3    — Neon S3 endpoint (e.g. https://<project>.storage.c-4.us-east-2.aws.neon.tech)
+ *   AWS_REGION             — region (e.g. us-east-2)
+ *   AWS_ACCESS_KEY_ID      — access key id
+ *   AWS_SECRET_ACCESS_KEY  — secret access key
  *   S3_BUCKET              — bucket name (default "uploads")
- *   S3_REGION              — region (default "auto"; S3-compatible services often use "auto")
- *   S3_PUBLIC_URL          — optional public base URL for the bucket (fast, cacheable playback)
  *   S3_URL_EXPIRES         — presigned URL TTL in seconds (default 3600)
  *
- * When S3 is NOT configured, the server falls back to local-disk storage so dev/local
- * testing still works (see index.js). Object keys are stored WITHOUT a leading slash
+ * The bucket is PRIVATE by design (artist sovereignty), so playback/download always goes
+ * through short-lived presigned GET URLs generated server-side — never a public bucket URL.
+ *
+ * Notes (from Neon docs):
+ *   - forcePathStyle MUST be true (Neon uses path-style addressing).
+ *   - requestChecksumCalculation: 'WHEN_REQUIRED' avoids the SDK adding checksum headers that
+ *     non-AWS S3-compatible endpoints reject.
+ *
+ * When S3 is NOT configured, the server falls back to local-disk storage so dev/local testing
+ * still works (see index.js). Object keys are stored WITHOUT a leading slash
  * (e.g. "uploads/<uuid>.mp3"); local-disk paths keep the legacy "/uploads/<file>" form.
  */
 
-const S3_ENDPOINT = process.env.S3_ENDPOINT || process.env.OBJECT_STORAGE_ENDPOINT || '';
-const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || process.env.AWS_ACCESS_KEY_ID || '';
-const S3_SECRET_KEY = process.env.S3_SECRET_KEY || process.env.AWS_SECRET_ACCESS_KEY || '';
+const S3_ENDPOINT = process.env.AWS_ENDPOINT_URL_S3 || process.env.S3_ENDPOINT || process.env.OBJECT_STORAGE_ENDPOINT || '';
+const S3_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY || '';
+const S3_SECRET_KEY = process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_KEY || '';
 const S3_BUCKET = process.env.S3_BUCKET || process.env.OBJECT_STORAGE_BUCKET || 'uploads';
-const S3_REGION = process.env.S3_REGION || 'auto';
-const S3_PUBLIC_URL = (process.env.S3_PUBLIC_URL || '').replace(/\/+$/, '');
+const S3_REGION = process.env.AWS_REGION || process.env.S3_REGION || 'us-east-2';
 const S3_URL_EXPIRES = Math.max(parseInt(process.env.S3_URL_EXPIRES || '3600', 10) || 3600, 60);
 
 let client = null;
@@ -37,7 +43,8 @@ function getClient() {
         accessKeyId: S3_ACCESS_KEY,
         secretAccessKey: S3_SECRET_KEY,
       },
-      forcePathStyle: true, // required for most S3-compatible endpoints (R2/Neon/MinIO)
+      forcePathStyle: true, // required for Neon/R2/MinIO-style endpoints
+      requestChecksumCalculation: 'WHEN_REQUIRED', // avoid checksum headers non-AWS endpoints reject
     });
   }
   return client;
@@ -67,13 +74,10 @@ export async function uploadTrack(buffer, key, contentType) {
 }
 
 /**
- * Return a playback/download URL for an S3 object key.
- * Prefers the public bucket URL (fast + cacheable); otherwise generates a presigned URL.
+ * Return a short-lived presigned GET URL for playback/download of a private object.
+ * Returns null when S3 is not configured (caller should fall back to local path).
  */
 export async function getTrackUrl(key) {
-  if (S3_PUBLIC_URL) {
-    return `${S3_PUBLIC_URL}/${key}`;
-  }
   const c = getClient();
   if (!c) return null;
   const url = await getSignedUrl(

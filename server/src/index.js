@@ -2,7 +2,6 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
@@ -206,84 +205,40 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
 });
 
 // ============================================================
-// Music Upload & Distribution
+// Music Upload & Distribution (Neon Object Storage / S3)
 // ============================================================
 
-const uploadsDir = path.resolve(__dirname, '../uploads');
-// Ensure local uploads directory exists for development fallback
-try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) {}
-
-// Local-disk storage (fallback when S3 is not configured)
-const localStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuidv4()}${ext}`);
+// multer buffers the file in memory, then we stream it to S3 via PutObject.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) return cb(null, true);
+    cb(new Error('Only audio files (MP3, WAV, FLAC, AAC, OGG, M4A) are allowed'));
   },
 });
 
-// In-memory storage for S3 uploads (multer buffers the file, then we pipe to S3)
-const memoryStorage = multer.memoryStorage();
-
-const audioFileFilter = (req, file, cb) => {
-  const allowed = ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a'];
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (allowed.includes(ext)) return cb(null, true);
-  cb(new Error('Only audio files (MP3, WAV, FLAC, AAC, OGG, M4A) are allowed'));
-};
-
-const uploadLocal = multer({ storage: localStorage, limits: { fileSize: 50 * 1024 * 1024 }, fileFilter: audioFileFilter });
-const uploadMemory = multer({ storage: memoryStorage, limits: { fileSize: 50 * 1024 * 1024 }, fileFilter: audioFileFilter });
-
-// Serve local uploads (only active when S3 is not configured)
-app.use('/uploads', express.static(uploadsDir));
-
-// GET /api/tracks/play/:trackId — resolve a playback URL (S3 presigned or local path)
-app.get('/api/tracks/play/:trackId', async (req, res) => {
-  try {
-    const rows = await query('SELECT file_path FROM tracks WHERE id = $1', [req.params.trackId]);
-    if (!rows || rows.length === 0) return res.status(404).json({ error: 'Track not found' });
-    const filePath = rows[0].file_path;
-    if (isS3Key(filePath)) {
-      const url = await getTrackUrl(filePath);
-      if (!url) return res.status(500).json({ error: 'Unable to generate playback URL' });
-      return res.json({ url });
-    }
-    // Local file — return a relative path
-    res.json({ url: filePath });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/tracks/upload — upload a track (requires auth)
+// POST /api/tracks/upload — upload a track to Neon Object Storage (requires auth)
 app.post('/api/tracks/upload', authMiddleware, (req, res) => {
-  const uploadHandler = isS3Configured() ? uploadMemory : uploadLocal;
-
-  uploadHandler.single('audio')(req, res, async (uploadErr) => {
+  upload.single('audio')(req, res, async (uploadErr) => {
     try {
       if (uploadErr) return res.status(400).json({ error: uploadErr.message });
       if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
       const { title } = req.body;
       if (!title) return res.status(400).json({ error: 'Track title is required' });
+      if (!isS3Configured()) return res.status(503).json({ error: 'Object storage is not configured' });
 
       const trackId = uuidv4();
-      let filePath;
+      const ext = path.extname(req.file.originalname);
+      const key = `uploads/${trackId}${ext}`;
 
-      if (isS3Configured()) {
-        // Upload to Neon Object Storage
-        const ext = path.extname(req.file.originalname);
-        const key = `uploads/${trackId}${ext}`;
-        await uploadTrack(req.file.buffer, key, req.file.mimetype);
-        filePath = key;
-      } else {
-        // Local disk fallback
-        filePath = `/uploads/${req.file.filename}`;
-      }
+      await uploadTrack(req.file.buffer, key, req.file.mimetype);
 
       await exec(
         'INSERT INTO tracks (id, user_id, title, file_path, file_size) VALUES ($1, $2, $3, $4, $5)',
-        [trackId, req.currentUser.id, title, filePath, req.file.size]
+        [trackId, req.currentUser.id, title, key, req.file.size]
       );
 
       // Award XP for upload
@@ -291,21 +246,35 @@ app.post('/api/tracks/upload', authMiddleware, (req, res) => {
         await addXp(req.currentUser.id, 'first_upload');
       } catch (xpErr) { /* silent */ }
 
-      res.status(201).json({ track: { id: trackId, title, filePath, fileSize: req.file.size } });
+      res.status(201).json({ track: { id: trackId, title, filePath: key, fileSize: req.file.size } });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
   });
 });
 
-// GET /api/tracks/:userId — list tracks for a user, resolving playback URLs
+// GET /api/tracks/play/:trackId — generate a short-lived presigned GET URL for playback/download
+app.get('/api/tracks/play/:trackId', async (req, res) => {
+  try {
+    const rows = await query('SELECT file_path FROM tracks WHERE id = $1', [req.params.trackId]);
+    if (!rows || rows.length === 0) return res.status(404).json({ error: 'Track not found' });
+    const filePath = rows[0].file_path;
+    if (!isS3Key(filePath)) return res.status(500).json({ error: 'Track has no object storage key' });
+    const url = await getTrackUrl(filePath);
+    if (!url) return res.status(500).json({ error: 'Unable to generate playback URL' });
+    res.json({ url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/tracks/:userId — list tracks for a user, resolving presigned playback URLs
 app.get('/api/tracks/:userId', async (req, res) => {
   try {
     const tracks = await query(
       'SELECT id, title, file_path, file_size, duration, plays, created_at FROM tracks WHERE user_id = $1 ORDER BY created_at DESC',
       [req.params.userId]
     );
-    // Resolve S3 presigned URLs for the response
     const resolved = await Promise.all((tracks || []).map(async (t) => {
       if (isS3Key(t.file_path)) {
         t.file_path = await getTrackUrl(t.file_path) || t.file_path;
@@ -334,7 +303,7 @@ app.delete('/api/tracks/:trackId', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Track not found or not yours' });
     }
     const filePath = tracks[0].file_path;
-    // Delete from S3 if applicable
+    // Delete the object from S3 (best-effort)
     if (isS3Key(filePath)) {
       try { await deleteTrack(filePath); } catch (e) { /* best-effort */ }
     }
