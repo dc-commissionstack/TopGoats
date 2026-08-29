@@ -376,44 +376,6 @@ app.post('/api/shield/fingerprint', async (req, res) => {
 });
 
 // ============================================================
-// Mock Checkout & SSF Pool (non-Stripe for now)
-// ============================================================
-
-app.post('/api/checkout', authMiddleware, async (req, res) => {
-  try {
-    const { price, rank } = req.body;
-    if (!price) return res.status(400).json({ error: 'Price is required' });
-
-    const userRank = rank || 'Kid';
-    const estimate = calculatePayout(price, userRank);
-
-    globalThis.ssfPool = (globalThis.ssfPool || 0) + Math.round(estimate.ssfFee * 100);
-
-    try {
-      await addXp(req.currentUser.id, 'first_sale');
-    } catch (e) { /* silent */ }
-
-    const saleId = 'SALE-' + Date.now().toString(36).toUpperCase();
-
-    res.json({
-      success: true,
-      saleId,
-      transaction: {
-        gross: price,
-        stripeFee: estimate.stripeFee,
-        platformFee: estimate.platformFee,
-        ssfFee: estimate.ssfFee,
-        artistPayout: estimate.artistPayout,
-      },
-      ssfPool: globalThis.ssfPool,
-      message: `Purchase complete. Artist receives ${estimate.artistPayout}.`,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ============================================================
 // Fallback
 // ============================================================
 
