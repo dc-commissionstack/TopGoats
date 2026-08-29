@@ -105,6 +105,42 @@ export default function SovereigntyLedgerPage() {
           </p>
         </div>
 
+        {/* Support & Memberships — real Stripe hosted checkout */}
+        <div className="mt-8 bg-[#0d0d0d] brutal-border rounded-sm p-6">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-4">
+            Support the Sound
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <a
+              href="https://buy.stripe.com/bJe28r1583IV680aIDfw403"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#f7971e] hover:text-[#f7971e] transition-all"
+            >
+              Premium Membership<br /><span className="text-sm font-black">$9.99/mo</span>
+            </a>
+            <a
+              href="https://buy.stripe.com/fZu28r8xA1AN8g89Ezfw402"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#6b8e23] hover:text-[#6b8e23] transition-all"
+            >
+              Copyright Filing<br /><span className="text-sm font-black">$50</span>
+            </a>
+            <a
+              href="https://buy.stripe.com/14AeVdg02gvH8g82c7fw404"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#4ade80] hover:text-[#4ade80] transition-all"
+            >
+              Sovereignty Donation<br /><span className="text-sm font-black">$5</span>
+            </a>
+          </div>
+          <p className="text-[10px] text-gray-600 mt-4">
+            Payments are processed securely via Stripe hosted checkout.
+          </p>
+        </div>
+
       </div>
     </div>
   );

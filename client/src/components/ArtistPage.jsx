@@ -165,12 +165,14 @@ export default function ArtistPage({ user, artistId }) {
                 Support the Sound
               </h2>
               <div className="space-y-4">
-                <button
-                  className="w-full py-4 bg-[#f7971e] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffd200] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(247,151,30,0.2)]"
-                  onClick={() => alert('Commerce flow coming soon!')}
+                <a
+                  href="https://buy.stripe.com/aFaaEX6pscfr2VO7rwfw405"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-4 bg-[#f7971e] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffd200] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(247,151,30,0.2)] inline-block text-center"
                 >
                   Buy Entire Catalog — $7.00
-                </button>
+                </a>
                 <div className="grid grid-cols-2 gap-3">
                    <button className="py-3 brutal-border text-[10px] font-bold uppercase tracking-wider hover:bg-white/5 transition-all text-gray-400">
                      Tip Artist
