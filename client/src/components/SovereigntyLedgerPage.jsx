@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { redirectToCheckout } from '../lib/checkout';
 
 const MOCK_GRANTS = []; // No grants yet — funded by real platform fees
 
 export default function SovereigntyLedgerPage() {
   const [ssfData, setSsfData] = useState(null);
   const [grants] = useState(MOCK_GRANTS);
+  const [buying, setBuying] = useState(null);
+  const [checkoutError, setCheckoutError] = useState('');
 
   useEffect(() => {
     fetch('/api/ssf/status')
@@ -12,6 +15,17 @@ export default function SovereigntyLedgerPage() {
       .then((data) => setSsfData(data))
       .catch(() => {});
   }, []);
+
+  const handleBuy = async (type) => {
+    setCheckoutError('');
+    setBuying(type);
+    try {
+      await redirectToCheckout(type);
+    } catch (err) {
+      setCheckoutError(err.message);
+      setBuying(null);
+    }
+  };
 
   const totalGrants = grants.reduce((s, g) => s + g.amount, 0);
   const poolDisplay = ssfData?.poolAmount ?? 0; // real value, fallback to 0
@@ -111,33 +125,33 @@ export default function SovereigntyLedgerPage() {
             Support the Sound
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <a
-              href="https://buy.stripe.com/bJe28r1583IV680aIDfw403"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#f7971e] hover:text-[#f7971e] transition-all"
+            <button
+              onClick={() => handleBuy('premium')}
+              disabled={buying === 'premium'}
+              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#f7971e] hover:text-[#f7971e] transition-all disabled:opacity-50"
             >
               Premium Membership<br /><span className="text-sm font-black">$9.99/mo</span>
-            </a>
-            <a
-              href="https://buy.stripe.com/fZu28r8xA1AN8g89Ezfw402"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#6b8e23] hover:text-[#6b8e23] transition-all"
+            </button>
+            <button
+              onClick={() => handleBuy('copyright_filing')}
+              disabled={buying === 'copyright_filing'}
+              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#6b8e23] hover:text-[#6b8e23] transition-all disabled:opacity-50"
             >
               Copyright Filing<br /><span className="text-sm font-black">$50</span>
-            </a>
-            <a
-              href="https://buy.stripe.com/14AeVdg02gvH8g82c7fw404"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#4ade80] hover:text-[#4ade80] transition-all"
+            </button>
+            <button
+              onClick={() => handleBuy('donation')}
+              disabled={buying === 'donation'}
+              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#4ade80] hover:text-[#4ade80] transition-all disabled:opacity-50"
             >
               Sovereignty Donation<br /><span className="text-sm font-black">$5</span>
-            </a>
+            </button>
           </div>
+          {checkoutError && (
+            <p className="text-[10px] text-[#f87171] mt-3">{checkoutError}</p>
+          )}
           <p className="text-[10px] text-gray-600 mt-4">
-            Payments are processed securely via Stripe hosted checkout.
+            Payments are processed securely via Stripe Checkout.
           </p>
         </div>
 

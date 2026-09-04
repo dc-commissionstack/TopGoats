@@ -53,9 +53,34 @@ CREATE TABLE IF NOT EXISTS tracks (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Orders (sales recorded from Stripe Checkout)
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES herd_users(id) ON DELETE SET NULL,
+  stripe_customer_id TEXT,
+  type TEXT NOT NULL,
+  amount_total INTEGER DEFAULT 0,
+  currency TEXT DEFAULT 'usd',
+  status TEXT DEFAULT 'paid',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Stripe webhook events (idempotency guard)
+CREATE TABLE IF NOT EXISTS stripe_events (
+  event_id TEXT PRIMARY KEY,
+  type TEXT,
+  processed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Premium subscription columns on herd_users
+ALTER TABLE herd_users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE herd_users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+ALTER TABLE herd_users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMPTZ;
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_herd_users_xp ON herd_users (xp DESC);
 CREATE INDEX IF NOT EXISTS idx_herd_users_handle ON herd_users (handle);
 CREATE INDEX IF NOT EXISTS idx_xp_events_user ON xp_events (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tracks_user ON tracks (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_auth_users_email ON auth_users (email);
+CREATE INDEX IF NOT EXISTS idx_orders_user ON orders (user_id, created_at DESC);

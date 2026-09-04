@@ -7,7 +7,7 @@ import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { getRank, addXp, calculateRank, getTiers, getBadges, XP_RULES } from './herd.js';
 import { registerUser, loginUser, getUserFromToken, updateProfile, generateToken } from './auth.js';
-import { calculatePayout } from './stripe.js';
+import { calculatePayout, createCheckoutSession, handleStripeWebhook, isStripeConfigured } from './stripe.js';
 import { query, exec, migrate, healthCheck as dbHealth } from './db.js';
 import { isS3Configured, isS3Key, uploadTrack, getTrackUrl, deleteTrack } from './storage.js';
 
@@ -23,6 +23,11 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 app.use(cors());
+
+// Stripe webhook — MUST be registered before express.json() so the raw body is preserved
+// for signature verification. Stripe sends the event as application/json.
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
 app.use(express.json());
 
 // Serve built frontend (from client/dist)
@@ -157,6 +162,17 @@ async function authMiddleware(req, res, next) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
   req.currentUser = user;
+  next();
+}
+
+// Optional auth: sets req.currentUser when a valid token is present, otherwise continues.
+async function optionalAuthMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const user = await getUserFromToken(token);
+    if (user) req.currentUser = user;
+  }
   next();
 }
 
@@ -368,6 +384,33 @@ app.get('/api/stripe/estimate', (req, res) => {
   const flash = req.query.flash === 'true';
   const estimate = calculatePayout(price, rank, flash);
   res.json(estimate);
+});
+
+// POST /api/checkout/session — create a Stripe Checkout Session and return the hosted URL
+app.post('/api/checkout/session', optionalAuthMiddleware, async (req, res) => {
+  try {
+    const { type, artistId, trackId, successUrl, cancelUrl } = req.body;
+    if (!type) return res.status(400).json({ error: 'type is required' });
+    if (!isStripeConfigured()) return res.status(503).json({ error: 'Payments are not configured' });
+
+    // Account-tied products require a logged-in user (to grant Premium / attribute the filing).
+    const accountBound = type === 'premium' || type === 'copyright_filing';
+    if (accountBound && !req.currentUser) {
+      return res.status(401).json({ error: 'Please log in to continue' });
+    }
+
+    const session = await createCheckoutSession(type, {
+      userId: req.currentUser?.id || null,
+      artistId: artistId || null,
+      trackId: trackId || null,
+      successUrl: successUrl || `${req.protocol}://${req.get('host')}/?checkout=success`,
+      cancelUrl: cancelUrl || `${req.protocol}://${req.get('host')}/?checkout=cancelled`,
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ============================================================
