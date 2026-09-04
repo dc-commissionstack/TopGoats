@@ -125,9 +125,15 @@ export async function handleStripeWebhook(req, res) {
   }
 
   // Idempotency: if we've already processed this event, ack immediately.
-  const already = await query('SELECT event_id FROM stripe_events WHERE event_id = $1', [event.id]);
-  if (already && already.length > 0) {
-    return res.json({ received: true, duplicate: true });
+  try {
+    const already = await query('SELECT event_id FROM stripe_events WHERE event_id = $1', [event.id]);
+    if (already && already.length > 0) {
+      return res.json({ received: true, duplicate: true });
+    }
+  } catch (err) {
+    // If the idempotency check itself fails (e.g. DB unavailable), log and
+    // fall through so Stripe still gets a definitive response below.
+    console.error('Webhook idempotency check error:', err.message);
   }
 
   try {
