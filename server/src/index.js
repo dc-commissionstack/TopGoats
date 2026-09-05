@@ -389,7 +389,7 @@ app.get('/api/stripe/estimate', (req, res) => {
 // POST /api/checkout/session — create a Stripe Checkout Session and return the hosted URL
 app.post('/api/checkout/session', optionalAuthMiddleware, async (req, res) => {
   try {
-    const { type, artistId, trackId, successUrl, cancelUrl } = req.body;
+    const { type, artistId, trackId, successUrl, cancelUrl, amountCents } = req.body;
     if (!type) return res.status(400).json({ error: 'type is required' });
     if (!isStripeConfigured()) return res.status(503).json({ error: 'Payments are not configured' });
 
@@ -399,12 +399,21 @@ app.post('/api/checkout/session', optionalAuthMiddleware, async (req, res) => {
       return res.status(401).json({ error: 'Please log in to continue' });
     }
 
+    // Donation is pay-what-you-want; validate the chosen amount (whole cents, $1–$10k).
+    if (type === 'donation' && amountCents != null) {
+      const cents = Number(amountCents);
+      if (!Number.isInteger(cents) || cents < 100 || cents > 1000000) {
+        return res.status(400).json({ error: 'Donation amount must be between $1.00 and $10,000.00' });
+      }
+    }
+
     const session = await createCheckoutSession(type, {
       userId: req.currentUser?.id || null,
       artistId: artistId || null,
       trackId: trackId || null,
       successUrl: successUrl || `${req.protocol}://${req.get('host')}/?checkout=success`,
       cancelUrl: cancelUrl || `${req.protocol}://${req.get('host')}/?checkout=cancelled`,
+      amountCents: type === 'donation' && amountCents != null ? Number(amountCents) : undefined,
     });
 
     res.json({ url: session.url });

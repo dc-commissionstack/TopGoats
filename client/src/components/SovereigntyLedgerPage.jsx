@@ -8,6 +8,7 @@ export default function SovereigntyLedgerPage() {
   const [grants] = useState(MOCK_GRANTS);
   const [buying, setBuying] = useState(null);
   const [checkoutError, setCheckoutError] = useState('');
+  const [donationAmount, setDonationAmount] = useState(5);
 
   useEffect(() => {
     fetch('/api/ssf/status')
@@ -16,15 +17,24 @@ export default function SovereigntyLedgerPage() {
       .catch(() => {});
   }, []);
 
-  const handleBuy = async (type) => {
+  const handleBuy = async (type, amountCents) => {
     setCheckoutError('');
     setBuying(type);
     try {
-      await redirectToCheckout(type);
+      await redirectToCheckout(type, amountCents ? { amountCents } : {});
     } catch (err) {
       setCheckoutError(err.message);
       setBuying(null);
     }
+  };
+
+  const handleDonate = () => {
+    const dollars = Number(donationAmount);
+    if (!Number.isFinite(dollars) || dollars < 1) {
+      setCheckoutError('Please enter an amount of at least $1.');
+      return;
+    }
+    handleBuy('donation', Math.round(dollars * 100));
   };
 
   const totalGrants = grants.reduce((s, g) => s + g.amount, 0);
@@ -139,13 +149,29 @@ export default function SovereigntyLedgerPage() {
             >
               Copyright Filing<br /><span className="text-sm font-black">$50</span>
             </button>
-            <button
-              onClick={() => handleBuy('donation')}
-              disabled={buying === 'donation'}
-              className="block text-center py-4 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#4ade80] hover:text-[#4ade80] transition-all disabled:opacity-50"
-            >
-              Sovereignty Donation<br /><span className="text-sm font-black">$5</span>
-            </button>
+            <div className="brutal-border py-3 px-4 flex flex-col items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                Sovereignty Donation
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black">$</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={donationAmount}
+                  onChange={(e) => setDonationAmount(e.target.value)}
+                  className="w-16 bg-[#111] border border-[#2a2a2a] rounded-sm px-2 py-1 text-sm text-white text-center focus:border-[#4ade80] outline-none"
+                />
+              </div>
+              <button
+                onClick={handleDonate}
+                disabled={buying === 'donation'}
+                className="w-full text-center py-2 brutal-border text-[10px] font-bold uppercase tracking-wider text-gray-300 hover:border-[#4ade80] hover:text-[#4ade80] transition-all disabled:opacity-50"
+              >
+                Donate
+              </button>
+            </div>
           </div>
           {checkoutError && (
             <p className="text-[10px] text-[#f87171] mt-3">{checkoutError}</p>

@@ -63,11 +63,22 @@ const PRODUCTS = {
 
 /**
  * Create a Stripe Checkout Session and return its hosted URL.
- * opts: { userId (buyer), artistId (seller for song/catalog), trackId, successUrl, cancelUrl }
+ * opts: { userId (buyer), artistId (seller for song/catalog), trackId, successUrl, cancelUrl, amountCents }
+ *   amountCents — optional pay-what-you-want override (used for donations).
  */
 export async function createCheckoutSession(type, opts = {}) {
   const product = PRODUCTS[type];
   if (!product) throw new Error(`Unknown product type: ${type}`);
+
+  // Pay-what-you-want: donations accept a user-chosen amount (whole cents).
+  let unitAmount = product.amount;
+  if (opts.amountCents != null) {
+    const amountCents = Number(opts.amountCents);
+    if (!Number.isInteger(amountCents) || amountCents < 100 || amountCents > 1000000) {
+      throw new Error('Donation amount must be between $1.00 and $10,000.00');
+    }
+    unitAmount = amountCents;
+  }
 
   const s = getStripe();
 
@@ -75,7 +86,7 @@ export async function createCheckoutSession(type, opts = {}) {
     price_data: {
       currency: 'usd',
       product_data: { name: product.name },
-      unit_amount: product.amount,
+      unit_amount: unitAmount,
     },
     quantity: 1,
   };
