@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { redirectToCheckout } from '../lib/checkout';
 
 // Mock tracks for template display
 const DEFAULT_TRACKS = [
@@ -9,9 +10,11 @@ const DEFAULT_TRACKS = [
   { id: '5', title: 'Raw Edge', duration: '3:33', plays: 445 },
 ];
 
-export default function MusicPlayer({ tracks = DEFAULT_TRACKS }) {
+export default function MusicPlayer({ tracks = DEFAULT_TRACKS, userId }) {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [buyingTrackId, setBuyingTrackId] = useState(null);
+  const [checkoutError, setCheckoutError] = useState('');
   const audioRef = useRef(null);
 
   const handlePlay = (track) => {
@@ -20,6 +23,18 @@ export default function MusicPlayer({ tracks = DEFAULT_TRACKS }) {
     } else {
       setCurrentTrack(track);
       setIsPlaying(true);
+    }
+  };
+
+  const handleBuy = async (e, track) => {
+    e.stopPropagation();
+    setCheckoutError('');
+    setBuyingTrackId(track.id);
+    try {
+      await redirectToCheckout('song_credit', { trackId: track.id, artistId: userId });
+    } catch (err) {
+      setCheckoutError(err.message);
+      setBuyingTrackId(null);
     }
   };
 
@@ -77,19 +92,23 @@ export default function MusicPlayer({ tracks = DEFAULT_TRACKS }) {
             {/* Duration */}
             <span className="text-xs text-gray-500 font-mono">{track.duration}</span>
 
-            {/* Buy button — real Stripe hosted checkout ($1 song credit) */}
-            <a
-              href="https://buy.stripe.com/8x26oH6psenz9kcbMHfw401"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] px-3 py-1 border border-[#333] rounded-sm uppercase tracking-wider hover:border-[#f7971e] hover:text-[#f7971e] transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
-              onClick={(e) => e.stopPropagation()}
+            {/* Buy button — server-driven Stripe Checkout ($1 song credit) */}
+            <button
+              onClick={(e) => handleBuy(e, track)}
+              disabled={buyingTrackId === track.id}
+              className="text-[10px] px-3 py-1 border border-[#333] rounded-sm uppercase tracking-wider hover:border-[#f7971e] hover:text-[#f7971e] transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 disabled:opacity-50"
             >
-              Buy
-            </a>
+              {buyingTrackId === track.id ? '…' : 'Buy'}
+            </button>
           </div>
         ))}
       </div>
+
+      {checkoutError && (
+        <div className="px-4 py-2 border-t border-[#2a2a2a] text-[10px] text-[#f87171]">
+          {checkoutError}
+        </div>
+      )}
 
       {/* Now playing mini-bar */}
       {currentTrack && (

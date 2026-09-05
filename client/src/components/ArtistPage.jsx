@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import RankBadge from './RankBadge';
 import MusicPlayer from './MusicPlayer';
+import { redirectToCheckout } from '../lib/checkout';
 
 // Minimal fallback for totally anonymous visits — no fake songs, no fake stats
 const EMPTY_ARTIST = {
@@ -19,6 +20,8 @@ const EMPTY_ARTIST = {
 export default function ArtistPage({ user, artistId }) {
   const [liveTracks, setLiveTracks] = useState(null);
   const [fetchedArtist, setFetchedArtist] = useState(null);
+  const [buyingCatalog, setBuyingCatalog] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
 
   // Fetch artist data by ID from API
   useEffect(() => {
@@ -65,6 +68,17 @@ export default function ArtistPage({ user, artistId }) {
     : null;
 
   const artist = fetchedArtist || liveArtist || EMPTY_ARTIST;
+
+  const handleBuyCatalog = async () => {
+    setCheckoutError('');
+    setBuyingCatalog(true);
+    try {
+      await redirectToCheckout('catalog_bundle', { artistId: artistId || user?.id });
+    } catch (err) {
+      setCheckoutError(err.message);
+      setBuyingCatalog(false);
+    }
+  };
 
   // Fetch real tracks from API
   useEffect(() => {
@@ -165,14 +179,16 @@ export default function ArtistPage({ user, artistId }) {
                 Support the Sound
               </h2>
               <div className="space-y-4">
-                <a
-                  href="https://buy.stripe.com/aFaaEX6pscfr2VO7rwfw405"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-4 bg-[#f7971e] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffd200] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(247,151,30,0.2)] inline-block text-center"
+                <button
+                  onClick={handleBuyCatalog}
+                  disabled={buyingCatalog}
+                  className="w-full py-4 bg-[#f7971e] text-black text-xs font-black uppercase tracking-widest hover:bg-[#ffd200] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(247,151,30,0.2)] inline-block text-center disabled:opacity-60"
                 >
-                  Buy Entire Catalog — $7.00
-                </a>
+                  {buyingCatalog ? 'Opening checkout…' : 'Buy Entire Catalog — $7.00'}
+                </button>
+                {checkoutError && (
+                  <p className="text-[10px] text-[#f87171]">{checkoutError}</p>
+                )}
                 <div className="grid grid-cols-2 gap-3">
                    <button className="py-3 brutal-border text-[10px] font-bold uppercase tracking-wider hover:bg-white/5 transition-all text-gray-400">
                      Tip Artist
