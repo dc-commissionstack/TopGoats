@@ -77,6 +77,9 @@ ALTER TABLE herd_users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
 ALTER TABLE herd_users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
 ALTER TABLE herd_users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMPTZ;
 
+-- Admin flag on auth_users
+ALTER TABLE auth_users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_herd_users_xp ON herd_users (xp DESC);
 CREATE INDEX IF NOT EXISTS idx_herd_users_handle ON herd_users (handle);

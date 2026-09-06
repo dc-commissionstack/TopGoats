@@ -176,6 +176,14 @@ async function optionalAuthMiddleware(req, res, next) {
   next();
 }
 
+// Admin guard: must run AFTER authMiddleware has set req.currentUser.
+async function adminMiddleware(req, res, next) {
+  if (!req.currentUser?.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+}
+
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, handle, displayName } = req.body;
@@ -217,6 +225,58 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
     res.json({ user: updated });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// ============================================================
+// Admin API Routes
+// ============================================================
+
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const [users, artists, tracks, orders, gmv, premium] = await Promise.all([
+      query('SELECT COUNT(*) AS n FROM auth_users'),
+      query('SELECT COUNT(*) AS n FROM herd_users'),
+      query('SELECT COUNT(*) AS n FROM tracks'),
+      query('SELECT COUNT(*) AS n FROM orders'),
+      query('SELECT COALESCE(SUM(amount_total), 0) AS n FROM orders'),
+      query('SELECT COUNT(*) AS n FROM herd_users WHERE premium_until > NOW()'),
+    ]);
+    res.json({
+      totalUsers: parseInt(users[0].n),
+      totalArtists: parseInt(artists[0].n),
+      totalTracks: parseInt(tracks[0].n),
+      totalOrders: parseInt(orders[0].n),
+      gmvCents: parseInt(gmv[0].n),
+      premiumCount: parseInt(premium[0].n),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const rows = await query(
+      `SELECT auth_users.email, herd_users.handle, herd_users.display_name, herd_users.xp,
+              auth_users.is_admin, auth_users.created_at
+         FROM auth_users
+         LEFT JOIN herd_users ON herd_users.id = auth_users.id
+        ORDER BY auth_users.created_at DESC
+        LIMIT 200`
+    );
+    res.json({ users: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200');
+    res.json({ orders: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
