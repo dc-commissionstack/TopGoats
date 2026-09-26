@@ -34,11 +34,12 @@ export async function getUserFromToken(token) {
   const users = await query('SELECT * FROM herd_users WHERE id = $1', [payload.userId]);
   if (!users || users.length === 0) return null;
 
-  const authInfo = await query('SELECT email FROM auth_users WHERE id = $1', [payload.userId]);
+  const authInfo = await query('SELECT email, is_admin FROM auth_users WHERE id = $1', [payload.userId]);
 
   return {
     ...users[0],
     email: authInfo && authInfo.length > 0 ? authInfo[0].email : null,
+    is_admin: !!(authInfo && authInfo.length > 0 && authInfo[0].is_admin),
   };
 }
 
@@ -121,6 +122,7 @@ export async function loginUser(email, password) {
       bio: profile?.bio || '',
       location: profile?.location || '',
       genre: profile?.genre || 'Underground',
+      is_admin: !!authUser.is_admin,
     },
   };
 }
