@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top Goats — Own Your Sound. No Permission.</title>
+    <meta name="description" content="The all-in-one sovereign ecosystem for underground artists. Host your page, protect your IP, sell your music — no labels taking a cut." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        --bg: #050505;
+        --panel: #0d0d0d;
+        --border: #2a2a2a;
+        --text: #d1d5db;
+        --muted: #6b7280;
+        --gold: #f7971e;
+        --gold-bright: #ffd200;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      a { color: inherit; text-decoration: none; }
+      .wrap { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+      header {
+        border-bottom: 1px solid #1a1a1a;
+        height: 64px;
+        display: flex;
+        align-items: center;
+      }
+      .brand { display: flex; align-items: center; gap: 12px; font-weight: 900; letter-spacing: 0.3em; color: #fff; text-transform: uppercase; font-size: 14px; }
+      .brand .mark {
+        width: 34px; height: 34px; border: 2px solid var(--gold);
+        display: inline-flex; align-items: center; justify-content: center;
+        color: var(--gold); font-size: 18px; border-radius: 2px;
+      }
+      main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 64px 0; }
+      .hero { text-align: center; max-width: 800px; }
+      .eyebrow {
+        display: inline-block; font-size: 11px; font-weight: 700;
+        letter-spacing: 0.45em; text-transform: uppercase; color: var(--gold);
+        margin-bottom: 24px; padding: 6px 14px; border: 1px solid rgba(247,151,30,0.35);
+        border-radius: 2px;
+      }
+      h1 {
+        font-size: clamp(44px, 9vw, 96px);
+        font-weight: 900; line-height: 0.92; color: #fff;
+        letter-spacing: -0.03em; text-transform: uppercase;
+      }
+      h1 .gold {
+        background: linear-gradient(90deg, #f7971e, #ffd200, #f7971e);
+        background-size: 200% auto;
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; color: transparent;
+        animation: shimmer 4s linear infinite;
+      }
+      @keyframes shimmer { to { background-position: 200% center; } }
+      .sub {
+        margin: 28px auto 0; max-width: 560px; font-size: 16px; line-height: 1.7;
+        color: var(--muted); font-weight: 500;
+      }
+      .sub strong { color: #fff; }
+      .cta {
+        margin-top: 48px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-block; min-width: 200px; padding: 18px 28px;
+        font-size: 14px; font-weight: 900; text-transform: uppercase;
+        letter-spacing: 0.18em; border-radius: 2px; cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      }
+      .btn:hover { transform: scale(1.04); }
+      .btn-join {
+        background: var(--gold); color: #000; border: 2px solid var(--gold);
+        box-shadow: 0 0 22px rgba(247,151,30,0.35);
+      }
+      .btn-join:hover { background: var(--gold-bright); border-color: var(--gold-bright); box-shadow: 0 0 30px rgba(247,151,30,0.55); }
+      .btn-login {
+        background: transparent; color: #fff; border: 2px solid var(--border);
+      }
+      .btn-login:hover { border-color: var(--gold); color: var(--gold); }
+      .features {
+        margin-top: 64px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; text-align: left;
+      }
+      .feature {
+        background: var(--panel); border: 1px solid #1a1a1a; padding: 22px; border-radius: 2px;
+      }
+      .feature h3 { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.14em; color: #fff; margin-bottom: 10px; }
+      .feature p { font-size: 12px; line-height: 1.6; color: var(--muted); }
+      footer {
+        border-top: 1px solid #1a1a1a; padding: 28px 0; text-align: center;
+        font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; color: #3f3f46;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <a class="brand" href="https://app.top-goats.com">
+          <span class="mark">TG</span>
+          <span>Top Goats</span>
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <div class="hero">
+          <span class="eyebrow">Sovereign Ecosystem for Off-Label Artists</span>
+          <h1>
+            Own Your Sound.<br />
+            <span class="gold">No Permission.</span>
+          </h1>
+          <p class="sub">
+            The all-in-one hub for underground music. Host your sovereign page,
+            protect your IP, sell your music — <strong>no labels taking a cut.</strong>
+          </p>
+          <div class="cta">
+            <a class="btn btn-join" href="https://app.top-goats.com">Join</a>
+            <a class="btn btn-login" href="https://app.top-goats.com">Login</a>
+          </div>
+          <div class="features">
+            <div class="feature">
+              <h3>Sovereign Pages</h3>
+              <p>Your space. Your prices. Your fans. A dedicated artist page with music player, bio, and direct-to-fan storefront.</p>
+            </div>
+            <div class="feature">
+              <h3>IP Protection</h3>
+              <p>Automated copyright fingerprinting at point of upload. Lock your IP before the world hears it.</p>
+            </div>
+            <div class="feature">
+              <h3>The Herd</h3>
+              <p>Gamified ranking that lowers your fees as you grow. From Kid to Top Goat.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      Top Goats — Independent Music Ecosystem
+    </footer>
+  </body>
+</html>
