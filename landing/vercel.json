@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "installCommand": "echo 'static landing - no install'",
+  "buildCommand": "echo 'static landing - no build'",
+  "outputDirectory": "."
+}
